@@ -20,6 +20,7 @@ public class StatController {
     private final StatService statService;
 
     @PostMapping("/hit")
+    @ResponseStatus(HttpStatus.CREATED)
     public void addHit(@RequestBody @Valid HitRequestDTO requestDto) {
         statService.addHit(requestDto);
     }
