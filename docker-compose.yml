@@ -30,7 +30,7 @@ services:
 
   ewm-service:
     build: ewm-service
-    image: evm-service
+    image: ewm-service
     container_name: ewm-service
     ports:
       - "8080:8080"
