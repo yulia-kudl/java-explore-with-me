@@ -12,10 +12,4 @@ public class StatsResponse {
     private String uri;
     private Integer hits;
 
-
-    public StatsResponse(String app, String uri, Long hits) {
-        this.app = app;
-        this.uri = uri;
-        this.hits = hits.intValue();
-    }
 }

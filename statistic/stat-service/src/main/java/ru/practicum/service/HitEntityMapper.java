@@ -8,8 +8,6 @@ import ru.practicum.entity.HitEntity;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface HitEntityMapper {
 
-    //HitRequestDTO toDTO(HitEntity hitEntity);
-
     HitEntity toEntity(HitRequestDTO requestDTO);
 
 

@@ -34,12 +34,15 @@ public class StatServiceImpl implements StatService {
             stats = statRepository.getAllHits(start, end, queryUris);
         }
         return stats.stream()
-                .map(row -> new StatsResponse(
-                        (String) row[0],
-                        (String) row[1],
-                        (Long) row[2])
-                )
-                .sorted(Comparator.comparingLong(StatsResponse::getHits).reversed())
+                .map(row -> {
+                   Integer hits = ((Number) row[2]).intValue();
+                    return new StatsResponse(
+                            (String) row[0],
+                            (String) row[1],
+                            hits
+                    );
+                })
+                .sorted(Comparator.comparingInt(StatsResponse::getHits).reversed())
                 .collect(Collectors.toList());
     }
 }

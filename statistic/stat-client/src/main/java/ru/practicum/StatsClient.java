@@ -1,10 +1,8 @@
 package ru.practicum;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -23,19 +21,24 @@ import java.util.Objects;
 public class StatsClient {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+
     @Value("${stats-server.url}")
-    private String statsServerUrl;
+    private String statsServerUrl; //  будет в properties основно модуля
 
-    public void postHit(HitRequestDTO hitRequest) {
-        String url = statsServerUrl + "/hit";
+    @Value("${app.name}")
+    private String app; //  будет в properties основно модуля
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+    public void postHit(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        String uri = request.getRequestURI();
 
-        HttpEntity<HitRequestDTO> request = new HttpEntity<>(hitRequest, headers);
+        HitRequestDTO hitRequest = new HitRequestDTO();
+        hitRequest.setApp(app);
+        hitRequest.setIp(ip);
+        hitRequest.setUri(uri);
 
-        restTemplate.postForEntity(url, request, Void.class);
+        restTemplate.postForObject(statsServerUrl + "/hit", hitRequest, Void.class);
     }
 
     public List<StatsResponse> getStats(LocalDateTime start,
