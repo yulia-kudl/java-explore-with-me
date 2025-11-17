@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import ru.practicum.ErrorHandler.EntityNotFoundException;
 import ru.practicum.ErrorHandler.EventChangeException;
 import ru.practicum.ErrorHandler.EventPublishException;
+import ru.practicum.StatsClient;
+import ru.practicum.StatsResponse;
 import ru.practicum.categories.entity.CategoryEntity;
 import ru.practicum.categories.repository.CategoryRepository;
 import ru.practicum.compilations.entity.CompilationEntity;
@@ -38,6 +40,7 @@ public class EventsServiceImpl implements EventsService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
+    private final StatsClient statsClient;
 
 
     @Override
@@ -60,6 +63,10 @@ public class EventsServiceImpl implements EventsService {
                 () -> new EntityNotFoundException(newEventDto.getCategory(), "Category")));
         newEntity.setState(EventState.PENDING);
         updateLocation(newEntity, mapper.toLocationEntity(newEventDto.getLocation()));
+        if (newEventDto.getRequestModeration() == null) {
+            newEntity.setRequestModeration(true);
+            newEntity.setParticipantLimit(0);
+        }
         return mapper.toFullDto(eventsRepository.save(newEntity));
     }
 
@@ -71,8 +78,9 @@ public class EventsServiceImpl implements EventsService {
         if (!entity.getInitiator().getId().equals(userId)) {
             throw new EntityNotFoundException(eventId, "Event");
         }
-
-        return mapper.toFullDto(entity);
+        EventFullDto eventFull = mapper.toFullDto(entity);
+        eventFull.setViews(getViewsForEvent(eventId, eventFull.getCreatedOn()));
+        return eventFull;
     }
 
     @Override
@@ -102,6 +110,7 @@ public class EventsServiceImpl implements EventsService {
                 .findAll(spec, pageable)
                 .stream()
                 .map(mapper::toFullDto)
+                .peek(event -> event.setViews(getViewsForEvent(event.getId(), event.getCreatedOn())))
                 .toList();
     }
 
@@ -114,13 +123,16 @@ public class EventsServiceImpl implements EventsService {
         if (!entity.getState().equals(EventState.PUBLISHED) ) {
             throw new EntityNotFoundException(id, "Event");
         }
+        EventFullDto eventFull = mapper.toFullDto(entity);
+        eventFull.setViews(getViewsForEvent(id, eventFull.getCreatedOn()));
+        return eventFull;
 
-        return mapper.toFullDto(entity);
     }
 
     @Override
     public List<EventFullDto> getEventsForAdmin(List<Integer> users, List<String> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
+
         List<Long> userIdsLong = users == null ? null :
                 users.stream()
                         .map(Integer::longValue)
@@ -147,6 +159,7 @@ public class EventsServiceImpl implements EventsService {
                 .findAll(spec, pageable)
                 .stream()
                 .map(mapper::toFullDto)
+                .peek(event -> event.setViews(getViewsForEvent(event.getId(), event.getCreatedOn())))
                 .toList();
     }
 
@@ -169,7 +182,7 @@ public class EventsServiceImpl implements EventsService {
                         throw new EventPublishException(entity.getState().name());
                     }
                     entity.setState(EventState.PUBLISHED);
-                    entity.setPublished_on(LocalDateTime.now());
+                    entity.setPublishedOn(LocalDateTime.now());
                 }
                 case StateAction.REJECT_EVENT -> {
                     if (entity.getState().equals(EventState.PUBLISHED)) {
@@ -208,7 +221,9 @@ public class EventsServiceImpl implements EventsService {
                     entity.setParticipant_limit(update.getParticipantLimit());
                 }
             } */
-        return mapper.toFullDto(eventsRepository.save(entity));
+        EventFullDto eventFull = mapper.toFullDto(eventsRepository.save(entity));
+        eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getCreatedOn()));
+        return eventFull;
 
     }
 
@@ -228,9 +243,16 @@ public class EventsServiceImpl implements EventsService {
         // дата и время на которые намечено событие не может быть раньше, чем через два часа от текущего момента (Ожидается код ошибки 409)
         //TODO
 
+        if (StateAction.CANCEL_REVIEW.equals(update.getStateAction())) {
+            entity.setState(EventState.CANCELED);
+        }
+        if (StateAction.SEND_TO_REVIEW.equals(update.getStateAction())) {
+            entity.setState(EventState.PENDING);
+        }
         updateEntity(entity,mapper.toEntity(update));
-
-        return mapper.toFullDto(eventsRepository.save(entity));
+        EventFullDto eventFull = mapper.toFullDto(eventsRepository.save(entity));
+        eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getCreatedOn()));
+        return eventFull;
     }
 
 
@@ -253,8 +275,8 @@ public class EventsServiceImpl implements EventsService {
              if (!(update.getDescription() == null)) {
                  entity.setDescription(update.getDescription());
              }
-             if (!(update.getEvent_date() == null)) {
-                 entity.setEvent_date(update.getEvent_date());
+             if (!(update.getEventDate() == null)) {
+                 entity.setEventDate(update.getEventDate());
              }
              if (!(update.getLocation() == null)) {
                  updateLocation(entity, update.getLocation());
@@ -266,20 +288,37 @@ public class EventsServiceImpl implements EventsService {
                  entity.setCategory(categoryRepository.findById(update.getCategory().getId()).orElseThrow(
                          () -> new EntityNotFoundException(update.getCategory().getId(), "Category")));
              }
-             if (!(update.getRequest_moderation() == null)) {
-                 entity.setRequest_moderation(update.getRequest_moderation());
+             if (!(update.getRequestModeration() == null)) {
+                 entity.setRequestModeration(update.getRequestModeration());
              }
              if (!(update.getTitle() == null)) {
                  entity.setTitle(update.getTitle());
              }
 
-             if (!(update.getParticipant_limit()== null )) {
-                 if ( entity.getConfirmed_requests() <=update.getParticipant_limit()) {
-                     entity.setParticipant_limit(update.getParticipant_limit());
+             if (!(update.getParticipantLimit()== null )) {
+                 if ( entity.getConfirmedRequests() <=update.getParticipantLimit()) {
+                     entity.setParticipantLimit(update.getParticipantLimit());
                  }
              }
 
          }
+
+    private long getViewsForEvent(Long eventId, LocalDateTime createdOn) {
+        List<String> uris = List.of("/events/" + eventId);
+
+        List<StatsResponse> stats = statsClient.getStats(
+                createdOn,
+                LocalDateTime.now(),
+                uris,
+                true
+        );
+
+        if (stats == null || stats.isEmpty()) {
+            return 0L;
+        }
+
+        return stats.getFirst().getHits();
+    }
 
 
 }

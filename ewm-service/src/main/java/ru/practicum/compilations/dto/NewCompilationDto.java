@@ -1,5 +1,7 @@
 package ru.practicum.compilations.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +15,7 @@ import java.util.List;
 public class NewCompilationDto {
     private List<Long> events;
     private Boolean pinned;
+    @NotBlank
     @Size(min = 1, max = 50, message = "title length must be between 1 and 50 characters")
     private String title;
 

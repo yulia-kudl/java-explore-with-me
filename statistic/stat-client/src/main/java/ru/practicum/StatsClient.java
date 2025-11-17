@@ -17,17 +17,20 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-@AllArgsConstructor
 public class StatsClient {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     private final RestTemplate restTemplate;
 
-    @Value("${stats-server.url}")
+    @Value("${stats-server.url:${STATS_SERVER_URL}}")
     private String statsServerUrl; //  будет в properties основно модуля
 
     @Value("${app.name}")
     private String app; //  будет в properties основно модуля
+
+    public StatsClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public void postHit(HttpServletRequest request) {
         String ip = request.getRemoteAddr();
@@ -37,6 +40,9 @@ public class StatsClient {
         hitRequest.setApp(app);
         hitRequest.setIp(ip);
         hitRequest.setUri(uri);
+        hitRequest.setTimestamp(LocalDateTime.now());
+
+        System.out.println("url = "+ statsServerUrl +"/hit");
 
         restTemplate.postForObject(statsServerUrl + "/hit", hitRequest, Void.class);
     }

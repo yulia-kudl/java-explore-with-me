@@ -23,7 +23,7 @@ public class CompilationsController {
 
     //public
     // GET /compilations?pinned={pinned}&from={from]&size={size}
-    @GetMapping("/compilations")
+    @GetMapping("compilations")
     List<CompilationDto> getCompilations(
             @RequestParam(required = false) Boolean pinned,
             @RequestParam(defaultValue = "10") Integer size,
@@ -33,7 +33,7 @@ public class CompilationsController {
     }
 
     // GET compilations/{compId}
-    @GetMapping("/compilations/{compId}")
+    @GetMapping("compilations/{compId}")
     CompilationDto getCompilation(@PathVariable Long compId) {
         return compilationService.getCompilationById(compId);
     }
@@ -41,14 +41,14 @@ public class CompilationsController {
     //admin
 
     // POST /admin/compilations
-    @PostMapping("/admin/compilations")
+    @PostMapping("admin/compilations")
     @ResponseStatus(HttpStatus.CREATED)
     CompilationDto addCompilation(@RequestBody @Valid NewCompilationDto newCompilationDto) {
         return  compilationService.addCompilation(newCompilationDto);
     }
 
     // DELETE /admin/compilations/{compId}
-    @DeleteMapping("/admin/compilations/{compId}")
+    @DeleteMapping("admin/compilations/{compId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteCompilation(@PathVariable Long compId) {
         compilationService.deleteCompilation(compId);
@@ -56,7 +56,7 @@ public class CompilationsController {
 
 
     // PATCH /admin/compilations/{compId}
-    @PatchMapping("/admin/compilations/{compId}")
+    @PatchMapping("admin/compilations/{compId}")
     CompilationDto updateCompilation(@PathVariable Long compId, @RequestBody @Valid UpdateCompilationRequest update) {
         return compilationService.updateCompilation(compId, update);
     }

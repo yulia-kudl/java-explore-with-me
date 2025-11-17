@@ -60,21 +60,31 @@ public class ErrorHandler {
     @ExceptionHandler(EventPublishException.class)
     public ResponseEntity<ErrorResponse> handleEventState(EventPublishException ex) {
         ErrorResponse response = new ErrorResponse(
-                "FORBIDDEN",
+                "CONFLICT",
                 "For the requested operation the conditions are not met.",
                 ex.getMessage(),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
-    @ExceptionHandler({EventChangeException.class, RequestException.class})
+    @ExceptionHandler( EventChangeException.class)
     public ResponseEntity<ErrorResponse> handleEventState(EventChangeException ex) {
         ErrorResponse response = new ErrorResponse(
-                "FORBIDDEN",
+                "CONFLICT",
                 "For the requested operation the conditions are not met.",
                 ex.getMessage(),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler( EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEventState(EntityNotFoundException ex) {
+        ErrorResponse response = new ErrorResponse(
+                "NOT FOUND",
+                "Entity NOT FOUND",
+                ex.getMessage(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 }

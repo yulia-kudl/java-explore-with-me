@@ -17,6 +17,7 @@ public interface RequestEntityMapper {
     @Mapping( target = "event", ignore = true)
     RequestEntity toEntity(ParticipationRequestDto dto);
 
-    @Mapping( target = "event", ignore = true)
+    @Mapping(target = "event", source = "event.id")
+    @Mapping(target = "requester", source = "user.id")
     ParticipationRequestDto toDto(RequestEntity entity);
 }

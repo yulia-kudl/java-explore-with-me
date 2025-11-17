@@ -34,6 +34,9 @@ public class StatController {
             @RequestParam(required = false) List<String> uris,
             @RequestParam(defaultValue = "false") boolean unique) {
 
+        if ( start.isAfter(end)) {
+            throw new ArgumentException("end date is before start");
+        }
         return statService.getStats(uris, start, end, unique);
     }
 }

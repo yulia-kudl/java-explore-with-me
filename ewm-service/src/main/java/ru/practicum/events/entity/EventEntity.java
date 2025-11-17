@@ -1,5 +1,6 @@
 package ru.practicum.events.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,33 +23,48 @@ public class EventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String annotation;
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private CategoryEntity category;
-    private Long confirmed_requests;
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long confirmedRequests = 0L;
     @CreationTimestamp
     @Column(name = "created_on", updatable = false)
-    private LocalDateTime created_on;
+    private LocalDateTime createdOn;
+    @Column(columnDefinition = "TEXT")
     private String description;
-    @Column(nullable = false)
-    private LocalDateTime event_date;
+    @Column(name = "event_date", nullable = false)
+    private LocalDateTime eventDate;
     @ManyToOne
     @JoinColumn(name = "initiator_id", nullable = false)
     private UserEntity initiator;
     @ManyToOne
     @JoinColumn(name = "location_id", nullable = false)
     private LocationEntity location;
-    private Boolean paid;
-    private Integer participant_limit;
-    private LocalDateTime published_on;
-    private Boolean request_moderation;
+    @Column(name = "paid", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean paid = false;
+
+    @Column(name = "participant_limit", nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer participantLimit = 0;
+    @Column(name = "published_on", nullable = true)
+    private LocalDateTime publishedOn;
+    @Column(name = "request_moderation", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean requestModeration = true;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EventState state = EventState.PENDING;
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String title;
-    private Boolean available;
+   // @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
+    // private Boolean available = true;
+
+    @Transient
+    public Boolean getAvailable() {
+        if (participantLimit == null || participantLimit == 0) return true; // нет лимита
+        return participantLimit > (confirmedRequests != null ? confirmedRequests : 0);
+    }
+
 }
 

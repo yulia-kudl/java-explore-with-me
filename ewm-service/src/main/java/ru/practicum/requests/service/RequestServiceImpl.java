@@ -63,7 +63,8 @@ public class RequestServiceImpl implements RequestService {
             throw new RequestException("нельзя участвовать в неопубликованном событии");
 
         }
-        if (!eventEntity.getAvailable()) {
+        if (eventEntity.getParticipantLimit() == eventEntity.getConfirmedRequests().intValue() &&
+                eventEntity.getParticipantLimit()!= 0) {
             throw new RequestException("у события достигнут лимит запросов на участие");
         }
 
@@ -72,11 +73,14 @@ public class RequestServiceImpl implements RequestService {
         requestEntity.setUser(userEntity);
         //если для события отключена пре-модерация запросов на участие, то запрос должен автоматически перейти в состояние подтвержденного
 
-        if (!eventEntity.getRequest_moderation()) {
+        if (!eventEntity.getRequestModeration() || eventEntity.getParticipantLimit() == 0) {
             requestEntity.setStatus(RequestStatus.CONFIRMED);
-            eventEntity.setConfirmed_requests(eventEntity.getConfirmed_requests() + 1);
-            if (eventEntity.getParticipant_limit() == eventEntity.getConfirmed_requests().intValue()) {
+            eventEntity.setConfirmedRequests(eventEntity.getConfirmedRequests() + 1);
+            if (eventEntity.getParticipantLimit() == eventEntity.getConfirmedRequests().intValue()) {
                 eventEntity.setAvailable(Boolean.FALSE);
+            }
+            if (eventEntity.getParticipantLimit() == 0 ) {
+                eventEntity.setAvailable(Boolean.TRUE);
             }
 
         } else {
@@ -87,27 +91,28 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public ParticipationRequestDto cancelRequest(Long userId, Long eventId) {
+    public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
         // 404 request not found
-        RequestEntity requestEntity = requestsRepository.findByUser_IdAndEvent_Id(userId, eventId).orElseThrow(
-                () -> new EntityNotFoundException(userId, "Request"));
+        RequestEntity requestEntity = requestsRepository.findById(requestId).orElseThrow(
+                () -> new EntityNotFoundException(requestId, "Request"));
+        Long eventId = requestEntity.getEvent().getId();
         EventEntity eventEntity = eventsRepository.findById(eventId).orElseThrow(
                 () -> new EntityNotFoundException(eventId, "Event"));
 
         // Если заявка была подтверждена, уменьшаем confirmed_requests
         if (requestEntity.getStatus() == RequestStatus.CONFIRMED) {
-            Long confirmed = eventEntity.getConfirmed_requests();
-            eventEntity.setConfirmed_requests(confirmed - 1);
+            Long confirmed = eventEntity.getConfirmedRequests();
+            eventEntity.setConfirmedRequests(confirmed - 1);
 
             // Событие снова доступно, если был лимит
-            if (eventEntity.getParticipant_limit() > 0 &&
-                    eventEntity.getConfirmed_requests() < eventEntity.getParticipant_limit()) {
-                eventEntity.setAvailable(true);
+            if (eventEntity.getParticipantLimit() > 0 &&
+                    eventEntity.getConfirmedRequests() < eventEntity.getParticipantLimit()) {
+                eventEntity.setAvailable(Boolean.TRUE);
             }
         }
 
         // Устанавливаем статус отменённого запроса
-        requestEntity.setStatus(RequestStatus.REJECTED);
+        requestEntity.setStatus(RequestStatus.CANCELED);
 
         // Сохраняем изменения
         requestsRepository.save(requestEntity);
@@ -118,72 +123,95 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public ParticipationRequestDto getRequestForUser(Long userId, Long eventId) {
-        RequestEntity requestEntity = requestsRepository.findByUser_IdAndEvent_Id(userId, eventId).orElseThrow(
-                () -> new EntityNotFoundException(userId, "Request"));
-        EventEntity eventEntity = eventsRepository.findById(eventId).orElseThrow(
-                () -> new EntityNotFoundException(eventId, "Event"));
+    public List<ParticipationRequestDto> getRequestForUser(Long userId, Long eventId) {
+        List<RequestEntity> requestEntity = requestsRepository.findByEvent_Id( eventId);
 
-
-        return mapper.toDto(requestEntity);
+        return requestEntity
+                .stream()
+                .map(mapper :: toDto)
+                .toList();
     }
 
     @Override
     @Transactional
-    public EventRequestStatusUpdateResult updateRequestStatus(EventRequestStatusUpdateRequest request, Long userId, Long eventId) {
+    public EventRequestStatusUpdateResult updateRequestStatus(EventRequestStatusUpdateRequest request,
+                                                              Long userId,
+                                                              Long eventId) {
 
-        EventEntity eventEntity = eventsRepository.findById(eventId).orElseThrow(
-                () -> new EntityNotFoundException(eventId, "Event"));
+        EventEntity eventEntity = eventsRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException(eventId, "Event"));
 
+        if (eventEntity.getParticipantLimit() != 0 &&
+                eventEntity.getParticipantLimit() == eventEntity.getConfirmedRequests().intValue() ) {
+            throw new RequestException("нет свободных мест у эвента");
+        }
 
-        List<RequestEntity> requests = requestsRepository.findByUser_IdAndEvent_IdIn(userId, request.getIds());
+        List<RequestEntity> requests = requestsRepository.findByIdIn(request.getRequestIds());
         if (requests.isEmpty()) {
-            throw new RequestException("список пуст");
+            throw new RequestException("Список пуст");
         }
 
         List<ParticipationRequestDto> confirmedDtos = new ArrayList<>();
         List<ParticipationRequestDto> rejectedDtos = new ArrayList<>();
         EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult(confirmedDtos, rejectedDtos);
 
-        if ( eventEntity.getConfirmed_requests().intValue() == eventEntity.getParticipant_limit() &&
-                request.getStatus().equals(RequestStatus.CONFIRMED)) {
-            throw new RequestException("нельзя подтвердить заявку, если уже достигнут лимит по заявкам" +
-                    " на данное событие ");
-        }
-        //если при подтверждении данной заявки, лимит заявок для события исчерпан, то все неподтверждённые заявки необходимо отклонить
-
-       long count =  requests.stream()
-                .filter(requestEntity -> requestEntity.getStatus().equals(RequestStatus.PENDING))
-                .count();
-        if (count != requests.size()) {
-            throw  new RequestException("статус можно изменить только у заявок, находящихся в состоянии ожидания");
-
+        // Проверяем что заявки в PENDING
+        boolean allPending = requests.stream()
+                .allMatch(r -> r.getStatus().equals(RequestStatus.PENDING));
+        if (!allPending) {
+            throw new RequestException("Статус можно изменить только у заявок в состоянии ожидания");
         }
 
-        // нужно отменить все
 
+        int confirmed = eventEntity.getConfirmedRequests().intValue();
+        int limit = eventEntity.getParticipantLimit();
+
+
+// если нужно отклонить
         if (request.getStatus().equals(RequestStatus.REJECTED)) {
-            requests.forEach(requestEntity -> {
-                requestEntity.setStatus(RequestStatus.REJECTED);
-                requestsRepository.save(requestEntity);
-            });
 
-            //return re
+            for (RequestEntity r : requests) {
+                r.setStatus(RequestStatus.REJECTED);
+                requestsRepository.save(r);
+                rejectedDtos.add(mapper.toDto(r));
+            }
 
+            return result;
         }
 
+// подтверждение
         if (request.getStatus().equals(RequestStatus.CONFIRMED)) {
-            //empty
+
+            for (RequestEntity r : requests) {
+                // Лимит достигнут -> заявка отклоняется
+                if (confirmed >= limit) {
+                    r.setStatus(RequestStatus.REJECTED);
+                    requestsRepository.save(r);
+                    rejectedDtos.add(mapper.toDto(r));
+                    continue;
+                }
+
+                // Подтверждаем
+                r.setStatus(RequestStatus.CONFIRMED);
+                requestsRepository.save(r);
+                confirmedDtos.add(mapper.toDto(r));
+                confirmed++;
+            }
+
+            // Обновляем число подтверждённых
+            eventEntity.setConfirmedRequests((long)confirmed);
+
+
+            if (confirmed >= limit) {
+                eventEntity.setAvailable(false);
+            }
+
+            eventsRepository.save(eventEntity);
+
+            return result;
         }
 
-
-
-
-
-
-
-
-        //если при подтверждении данной заявки, лимит заявок для события исчерпан, то все неподтверждённые заявки необходимо отклонить
-        return null;
+        return result;
     }
+
 }

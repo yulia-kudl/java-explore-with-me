@@ -6,13 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.users.dto.NewUserRequest;
 import ru.practicum.users.dto.UserDto;
 import ru.practicum.users.service.UserService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/admin/users/")
+@RequestMapping(path = "/admin/users")
 @RequiredArgsConstructor
 @Slf4j
 @Validated
@@ -31,12 +32,12 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto addUser(@RequestBody @Valid UserDto request) {
+    public UserDto addUser(@RequestBody @Valid NewUserRequest request) {
         return userService.addUser(request);
     }
 
     //  DELETE /admin/users/{userId}
-    @DeleteMapping("/{userId]")
+    @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);

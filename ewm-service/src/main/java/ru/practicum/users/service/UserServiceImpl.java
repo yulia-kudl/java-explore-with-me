@@ -1,10 +1,12 @@
 package ru.practicum.users.service;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.ErrorHandler.EntityNotFoundException;
+import ru.practicum.users.dto.NewUserRequest;
 import ru.practicum.users.dto.UserDto;
 import ru.practicum.users.entity.UserEntity;
 import ru.practicum.users.repository.UserRepository;
@@ -34,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto addUser(UserDto request) {
+    public UserDto addUser(NewUserRequest request) {
         UserEntity userEntity = userRepository.save(mapper.toEntity(request));
         return mapper.toUserDto(userEntity);
     }

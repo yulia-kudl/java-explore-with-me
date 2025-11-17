@@ -28,11 +28,11 @@ public class NewEventDto {
     @NotNull
     private Location location;
     private Boolean paid;
-    @Positive
+    @PositiveOrZero
     private Integer participantLimit;
     private Boolean requestModeration;
     @NotBlank( message = "must not be blank")
-    @Size(min = 3, max = 120, message = "description length must be between 1 and 50 characters")
+    @Size(min = 3, max = 120, message = "title length must be between 3 and 120 characters")
     private String title;
 
 

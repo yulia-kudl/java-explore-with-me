@@ -1,14 +1,19 @@
 package ru.practicum.events;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jdk.dynalink.linker.LinkerServices;
 import jdk.jfr.Category;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CurrentTimestamp;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import ru.practicum.ErrorHandler.InvalidDateTimeException;
+import ru.practicum.StatsClient;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.service.EventsService;
 
@@ -22,6 +27,7 @@ import java.util.List;
 @Validated
 public class EventsController {
     private final EventsService eventsService;
+    private final StatsClient statsClient;
 
 
     //private
@@ -68,19 +74,24 @@ public class EventsController {
     //  onlyAvailable={onlyAvailable}&sort={sort}&from={from}&size={size}
     @GetMapping("events")
     List<EventFullDto> getPublicEvents(
-            @RequestParam String text,
-            @RequestParam List<Integer> categories,
-            @RequestParam Boolean paid,
-            @RequestParam LocalDateTime rangeStart,
-            @RequestParam LocalDateTime rangeEnd,
-            @RequestParam Boolean onlyAvailable,
-            @RequestParam String sort,
+            HttpServletRequest request,
+            @RequestParam (required = false) String text,
+            @RequestParam (required = false) List<Integer> categories,
+            @RequestParam (required = false) Boolean paid,
+            @RequestParam (required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+            @RequestParam (required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
+            @RequestParam (required = false) Boolean onlyAvailable,
+            @RequestParam (required = false) String sort,
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size
             ) {
         // TODO вызвать статистику
-        rangeStart = rangeStart == null ? LocalDateTime.now() : rangeStart;
+        statsClient.postHit(request);
+        rangeStart = rangeEnd == null ? LocalDateTime.now() : rangeStart;
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new InvalidDateTimeException("range");
 
+        }
         return eventsService.searchEvents(text, categories,paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, from, size);
     }
@@ -88,8 +99,9 @@ public class EventsController {
 
     // GET   /events/{id}
     @GetMapping("events/{id}")
-    EventFullDto getEventById(@PathVariable Long id) {
+    EventFullDto getEventById(HttpServletRequest request, @PathVariable Long id) {
         // TODO добавить статистику
+        statsClient.postHit(request);
         return eventsService.getEventById(id);
     }
 
@@ -99,22 +111,21 @@ public class EventsController {
    // GET  admin/events?users=2&states=string&categories=2&rangeStart=222&rangeEnd=222&from=0&size=10
     @GetMapping("admin/events")
     List<EventFullDto> getAdminEvents(
-            @RequestParam List<Integer> users,
-            @RequestParam List<String> states,
-            @RequestParam List<Integer> categories,
-            @RequestParam LocalDateTime rangeStart,
-            @RequestParam LocalDateTime rangeEnd,
-            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam (required = false) List<Integer> users,
+            @RequestParam (required = false) List<String> states,
+            @RequestParam (required = false) List<Integer> categories,
+            @RequestParam (required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+            @RequestParam (required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
+            @RequestParam (defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size
     ) {
-
         return eventsService.getEventsForAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
 
   //  PATCH  /admin/events/{eventId}
     @PatchMapping("admin/events/{eventId}")
-    EventFullDto updateEventAdmin(@PathVariable Long eventId, @RequestBody UpdateEventAdminRequest update) {
+    EventFullDto updateEventAdmin(@PathVariable Long eventId, @RequestBody @Valid UpdateEventAdminRequest update) {
         return  eventsService.updateEventAdmin(eventId, update);
     }
 
