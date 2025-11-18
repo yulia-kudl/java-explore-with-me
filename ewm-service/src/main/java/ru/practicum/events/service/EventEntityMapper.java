@@ -14,12 +14,15 @@ import ru.practicum.users.service.UserEntityMapper;
         uses = {UserEntityMapper.class, CategoryEntityMapper.class})
 public interface EventEntityMapper {
     EventFullDto toFullDto(EventEntity entity);
+
     EventShortDto toShortDto(EventEntity entity);
 
     @Mapping(target = "category", ignore = true)
     EventEntity toEntity(NewEventDto dto);
+
     @Mapping(target = "category", ignore = true)
     EventEntity toEntity(UpdateEventUserRequest dto);
+
     @Mapping(target = "category", ignore = true)
     EventEntity toEntity(UpdateEventAdminRequest dto);
 

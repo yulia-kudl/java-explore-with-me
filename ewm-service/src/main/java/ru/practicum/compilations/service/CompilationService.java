@@ -1,6 +1,5 @@
 package ru.practicum.compilations.service;
 
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import ru.practicum.compilations.dto.CompilationDto;
 import ru.practicum.compilations.dto.NewCompilationDto;

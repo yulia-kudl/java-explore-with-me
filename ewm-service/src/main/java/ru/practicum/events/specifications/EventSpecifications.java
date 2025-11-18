@@ -1,10 +1,10 @@
 package ru.practicum.events.specifications;
 
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import ru.practicum.events.dto.EventState;
 import ru.practicum.events.entity.EventEntity;
 
-import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

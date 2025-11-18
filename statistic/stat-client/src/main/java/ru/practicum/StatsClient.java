@@ -1,7 +1,6 @@
 package ru.practicum;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -42,7 +41,7 @@ public class StatsClient {
         hitRequest.setUri(uri);
         hitRequest.setTimestamp(LocalDateTime.now());
 
-        System.out.println("url = "+ statsServerUrl +"/hit");
+        System.out.println("url = " + statsServerUrl + "/hit");
 
         restTemplate.postForObject(statsServerUrl + "/hit", hitRequest, Void.class);
     }

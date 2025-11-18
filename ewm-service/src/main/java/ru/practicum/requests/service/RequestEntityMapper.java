@@ -14,7 +14,7 @@ import ru.practicum.users.service.UserEntityMapper;
         uses = {UserEntityMapper.class, CategoryEntityMapper.class, EventEntityMapper.class})
 public interface RequestEntityMapper {
 
-    @Mapping( target = "event", ignore = true)
+    @Mapping(target = "event", ignore = true)
     RequestEntity toEntity(ParticipationRequestDto dto);
 
     @Mapping(target = "event", source = "event.id")

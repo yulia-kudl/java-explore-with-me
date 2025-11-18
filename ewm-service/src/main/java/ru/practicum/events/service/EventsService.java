@@ -1,6 +1,5 @@
 package ru.practicum.events.service;
 
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import ru.practicum.events.dto.*;
 

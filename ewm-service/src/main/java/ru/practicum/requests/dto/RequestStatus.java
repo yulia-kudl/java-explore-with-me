@@ -1,6 +1,5 @@
 package ru.practicum.requests.dto;
 
-public enum RequestStatus
-{
+public enum RequestStatus {
     PENDING, CONFIRMED, CANCELED, REJECTED
 }

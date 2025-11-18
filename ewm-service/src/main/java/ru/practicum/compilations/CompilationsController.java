@@ -44,7 +44,7 @@ public class CompilationsController {
     @PostMapping("admin/compilations")
     @ResponseStatus(HttpStatus.CREATED)
     CompilationDto addCompilation(@RequestBody @Valid NewCompilationDto newCompilationDto) {
-        return  compilationService.addCompilation(newCompilationDto);
+        return compilationService.addCompilation(newCompilationDto);
     }
 
     // DELETE /admin/compilations/{compId}

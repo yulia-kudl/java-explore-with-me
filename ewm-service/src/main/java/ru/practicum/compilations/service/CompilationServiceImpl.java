@@ -16,7 +16,6 @@ import ru.practicum.compilations.repository.CompilationRepository;
 import ru.practicum.events.entity.EventEntity;
 import ru.practicum.events.repository.EventsRepository;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,9 +31,9 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public List<CompilationDto> getCompilations(Boolean pinned, Integer size, Integer from) {
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        Page<CompilationEntity> result = pinned == null ?  compilationRepository.findAll(pageable) :
+        Page<CompilationEntity> result = pinned == null ? compilationRepository.findAll(pageable) :
                 compilationRepository.findAllByPinned(pinned, pageable);
-        return  result
+        return result
                 .stream()
                 .map(mapper::toDto)
                 .toList();
@@ -61,9 +60,9 @@ public class CompilationServiceImpl implements CompilationService {
             if (loadedEvents.size() != newCompilationDto.getEvents().size()) {
                 throw new EntityNotFoundException(null, "One or more events not found in list");
             }
-             events = new HashSet<>(loadedEvents);
+            events = new HashSet<>(loadedEvents);
         }
-       newEntity.setEvents(events);
+        newEntity.setEvents(events);
 
         return mapper.toDto(compilationRepository.save(newEntity));
     }
@@ -89,7 +88,7 @@ public class CompilationServiceImpl implements CompilationService {
             entity.setTitle(update.getTitle());
         }
 
-        if ( update.getEvents() != null ) {
+        if (update.getEvents() != null) {
             List<EventEntity> loadedEvents = eventsRepository.findAllById(update.getEvents());
             //  все события существуют?
             if (loadedEvents.size() != update.getEvents().size()) {

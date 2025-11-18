@@ -2,7 +2,6 @@ package ru.practicum.requests.service;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 import ru.practicum.ErrorHandler.EntityNotFoundException;
 import ru.practicum.ErrorHandler.RequestException;
@@ -18,8 +17,6 @@ import ru.practicum.requests.repository.RequestsRepository;
 import ru.practicum.users.entity.UserEntity;
 import ru.practicum.users.repository.UserRepository;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +36,7 @@ public class RequestServiceImpl implements RequestService {
 
         return requestsRepository.findAllByUserId(userId)
                 .stream()
-                .map(mapper:: toDto)
+                .map(mapper::toDto)
                 .toList();
     }
 
@@ -64,7 +61,7 @@ public class RequestServiceImpl implements RequestService {
 
         }
         if (eventEntity.getParticipantLimit() == eventEntity.getConfirmedRequests().intValue() &&
-                eventEntity.getParticipantLimit()!= 0) {
+                eventEntity.getParticipantLimit() != 0) {
             throw new RequestException("у события достигнут лимит запросов на участие");
         }
 
@@ -79,7 +76,7 @@ public class RequestServiceImpl implements RequestService {
             if (eventEntity.getParticipantLimit() == eventEntity.getConfirmedRequests().intValue()) {
                 eventEntity.setAvailable(Boolean.FALSE);
             }
-            if (eventEntity.getParticipantLimit() == 0 ) {
+            if (eventEntity.getParticipantLimit() == 0) {
                 eventEntity.setAvailable(Boolean.TRUE);
             }
 
@@ -124,11 +121,11 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<ParticipationRequestDto> getRequestForUser(Long userId, Long eventId) {
-        List<RequestEntity> requestEntity = requestsRepository.findByEvent_Id( eventId);
+        List<RequestEntity> requestEntity = requestsRepository.findByEvent_Id(eventId);
 
         return requestEntity
                 .stream()
-                .map(mapper :: toDto)
+                .map(mapper::toDto)
                 .toList();
     }
 
@@ -142,7 +139,7 @@ public class RequestServiceImpl implements RequestService {
                 .orElseThrow(() -> new EntityNotFoundException(eventId, "Event"));
 
         if (eventEntity.getParticipantLimit() != 0 &&
-                eventEntity.getParticipantLimit() == eventEntity.getConfirmedRequests().intValue() ) {
+                eventEntity.getParticipantLimit() == eventEntity.getConfirmedRequests().intValue()) {
             throw new RequestException("нет свободных мест у эвента");
         }
 
@@ -199,7 +196,7 @@ public class RequestServiceImpl implements RequestService {
             }
 
             // Обновляем число подтверждённых
-            eventEntity.setConfirmedRequests((long)confirmed);
+            eventEntity.setConfirmedRequests((long) confirmed);
 
 
             if (confirmed >= limit) {

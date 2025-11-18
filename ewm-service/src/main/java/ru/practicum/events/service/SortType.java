@@ -1,6 +1,6 @@
 package ru.practicum.events.service;
 
-public  enum SortType {
+public enum SortType {
     EVENT_DATE,
     VIEWS;
 

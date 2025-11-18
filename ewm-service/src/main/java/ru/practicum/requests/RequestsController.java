@@ -28,15 +28,14 @@ public class RequestsController {
     }
 
 
-
     // POST /users/2/requests?eventId=3
     @PostMapping("/users/{userId}/requests")
     @ResponseStatus(HttpStatus.CREATED)
     ParticipationRequestDto addRequest(@PathVariable Long userId, @RequestParam(required = true) Long eventId) {
-        return  requestService.addRequest(userId, eventId);
+        return requestService.addRequest(userId, eventId);
     }
 
-   //  PATCH    /users/{userId}/requests/{requestId}/cancel
+    //  PATCH    /users/{userId}/requests/{requestId}/cancel
     @PatchMapping("/users/{userId}/requests/{requestId}/cancel")
     ParticipationRequestDto cancelRequest(@PathVariable Long userId, @PathVariable Long requestId) {
         return requestService.cancelRequest(userId, requestId);
@@ -45,15 +44,15 @@ public class RequestsController {
 
     //  GET  /users/{userId}/events/{eventId}/requests
     @GetMapping("/users/{userId}/events/{eventId}/requests")
-    List<ParticipationRequestDto> getRequestForUser( @PathVariable Long userId, @PathVariable Long eventId) {
+    List<ParticipationRequestDto> getRequestForUser(@PathVariable Long userId, @PathVariable Long eventId) {
         return requestService.getRequestForUser(userId, eventId);
     }
 
     //  PATCH    /users/{userId}/events/{eventId}/requests
     @PatchMapping("/users/{userId}/events/{eventId}/requests")
-    EventRequestStatusUpdateResult  updateRequestStatus(@RequestBody @Valid EventRequestStatusUpdateRequest request,
-                                                        @PathVariable Long userId,
-                                                        @PathVariable Long eventId) {
+    EventRequestStatusUpdateResult updateRequestStatus(@RequestBody @Valid EventRequestStatusUpdateRequest request,
+                                                       @PathVariable Long userId,
+                                                       @PathVariable Long eventId) {
         return requestService.updateRequestStatus(request, userId, eventId);
     }
 }

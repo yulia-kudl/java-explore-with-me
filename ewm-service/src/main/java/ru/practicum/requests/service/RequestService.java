@@ -1,6 +1,5 @@
 package ru.practicum.requests.service;
 
-import org.hibernate.annotations.SecondaryRow;
 import org.springframework.stereotype.Service;
 import ru.practicum.requests.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.requests.dto.EventRequestStatusUpdateResult;

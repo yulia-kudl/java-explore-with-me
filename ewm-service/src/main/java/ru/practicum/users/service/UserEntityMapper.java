@@ -9,6 +9,7 @@ import ru.practicum.users.entity.UserEntity;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserEntityMapper {
     UserEntity toEntity(UserDto requestDto);
+
     UserEntity toEntity(NewUserRequest requestDto);
 
     UserDto toUserDto(UserEntity entity);

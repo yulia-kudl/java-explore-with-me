@@ -1,37 +1,36 @@
 package ru.practicum.categories.service;
 
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import ru.practicum.ErrorHandler.EntityNotFoundException;
 import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.categories.dto.NewCategoryDto;
 import ru.practicum.categories.entity.CategoryEntity;
 import ru.practicum.categories.repository.CategoryRepository;
-import ru.practicum.ErrorHandler.*;
-import ru.practicum.compilations.entity.CompilationEntity;
 
 import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class CategoryServiceImpl implements  CategoryService {
+public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryEntityMapper mapper;
 
     @Override
     @Transactional
-    public CategoryDto addCategory( NewCategoryDto request) {
+    public CategoryDto addCategory(NewCategoryDto request) {
         return mapper.toDTO(categoryRepository.save(mapper.toEntity(request)));
     }
 
     @Override
     public void deleteCategory(Long catId) {
         if (categoryRepository.findById(catId).isEmpty()) {
-            throw  new EntityNotFoundException(catId, "Category");        }
+            throw new EntityNotFoundException(catId, "Category");
+        }
         //проверить что не привязанных событий - 409
         categoryRepository.deleteById(catId);
     }

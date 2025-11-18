@@ -2,16 +2,12 @@ package ru.practicum.events;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jdk.dynalink.linker.LinkerServices;
-import jdk.jfr.Category;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.CurrentTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.practicum.ErrorHandler.InvalidDateTimeException;
 import ru.practicum.StatsClient;
 import ru.practicum.events.dto.*;
@@ -47,12 +43,13 @@ public class EventsController {
         return eventsService.addEvent(newEventDto, userId);
     }
 
-   // GET   /users/{userId}/events/{eventId}
+    // GET   /users/{userId}/events/{eventId}
     @GetMapping("users/{userId}/events/{eventId}")
     EventFullDto getFullEvent(@PathVariable Long userId, @PathVariable Long eventId) {
         return eventsService.getFullEvent(userId, eventId);
     }
-   // PATCH   /users/{userId}/events/{eventId}
+
+    // PATCH   /users/{userId}/events/{eventId}
     @PatchMapping("users/{userId}/events/{eventId}")
     EventFullDto updateUserEvent(@PathVariable Long userId, @PathVariable Long eventId,
                                  @RequestBody @Valid UpdateEventUserRequest update) {
@@ -62,29 +59,29 @@ public class EventsController {
 
 
 // TODO
-  //  GET  /users/{userId}/events/{eventId}/requests
+    //  GET  /users/{userId}/events/{eventId}/requests
 
     //TODO
-  //  PATCH    /users/{userId}/events/{eventId}/requests
+    //  PATCH    /users/{userId}/events/{eventId}/requests
 
 
     //public
 
-  //  GET  /events?text={text}&categories={}&paid={paid}&rangeStart={rangeStart}&rangeEnd={rangeEnd}&
+    //  GET  /events?text={text}&categories={}&paid={paid}&rangeStart={rangeStart}&rangeEnd={rangeEnd}&
     //  onlyAvailable={onlyAvailable}&sort={sort}&from={from}&size={size}
     @GetMapping("events")
     List<EventFullDto> getPublicEvents(
             HttpServletRequest request,
-            @RequestParam (required = false) String text,
-            @RequestParam (required = false) List<Integer> categories,
-            @RequestParam (required = false) Boolean paid,
-            @RequestParam (required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
-            @RequestParam (required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-            @RequestParam (required = false) Boolean onlyAvailable,
-            @RequestParam (required = false) String sort,
+            @RequestParam(required = false) String text,
+            @RequestParam(required = false) List<Integer> categories,
+            @RequestParam(required = false) Boolean paid,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
+            @RequestParam(required = false) Boolean onlyAvailable,
+            @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size
-            ) {
+    ) {
         // TODO вызвать статистику
         statsClient.postHit(request);
         rangeStart = rangeEnd == null ? LocalDateTime.now() : rangeStart;
@@ -92,7 +89,7 @@ public class EventsController {
             throw new InvalidDateTimeException("range");
 
         }
-        return eventsService.searchEvents(text, categories,paid, rangeStart,
+        return eventsService.searchEvents(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, from, size);
     }
 
@@ -108,25 +105,25 @@ public class EventsController {
 
     // admin
 
-   // GET  admin/events?users=2&states=string&categories=2&rangeStart=222&rangeEnd=222&from=0&size=10
+    // GET  admin/events?users=2&states=string&categories=2&rangeStart=222&rangeEnd=222&from=0&size=10
     @GetMapping("admin/events")
     List<EventFullDto> getAdminEvents(
-            @RequestParam (required = false) List<Integer> users,
-            @RequestParam (required = false) List<String> states,
-            @RequestParam (required = false) List<Integer> categories,
-            @RequestParam (required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
-            @RequestParam (required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-            @RequestParam (defaultValue = "0") Integer from,
+            @RequestParam(required = false) List<Integer> users,
+            @RequestParam(required = false) List<String> states,
+            @RequestParam(required = false) List<Integer> categories,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
+            @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size
     ) {
         return eventsService.getEventsForAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
 
-  //  PATCH  /admin/events/{eventId}
+    //  PATCH  /admin/events/{eventId}
     @PatchMapping("admin/events/{eventId}")
     EventFullDto updateEventAdmin(@PathVariable Long eventId, @RequestBody @Valid UpdateEventAdminRequest update) {
-        return  eventsService.updateEventAdmin(eventId, update);
+        return eventsService.updateEventAdmin(eventId, update);
     }
 
 

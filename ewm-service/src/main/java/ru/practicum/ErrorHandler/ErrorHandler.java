@@ -1,6 +1,5 @@
 package ru.practicum.ErrorHandler;
 
-import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -8,7 +7,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import ru.practicum.ErrorHandler.ErrorResponse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -67,7 +65,8 @@ public class ErrorHandler {
         );
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
-    @ExceptionHandler( EventChangeException.class)
+
+    @ExceptionHandler(EventChangeException.class)
     public ResponseEntity<ErrorResponse> handleEventState(EventChangeException ex) {
         ErrorResponse response = new ErrorResponse(
                 "CONFLICT",
@@ -77,7 +76,8 @@ public class ErrorHandler {
         );
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
-    @ExceptionHandler( EntityNotFoundException.class)
+
+    @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEventState(EntityNotFoundException ex) {
         ErrorResponse response = new ErrorResponse(
                 "NOT FOUND",
