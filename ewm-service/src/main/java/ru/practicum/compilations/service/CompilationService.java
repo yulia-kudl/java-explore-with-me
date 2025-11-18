@@ -10,7 +10,7 @@ import java.util.List;
 
 @Service
 public interface CompilationService {
-    public List<CompilationDto> getCompilations(Boolean pinned, Integer size, Integer from);
+    List<CompilationDto> getCompilations(Boolean pinned, Integer size, Integer from);
 
     CompilationDto getCompilationById(Long compId);
 

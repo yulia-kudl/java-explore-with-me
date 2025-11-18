@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import ru.practicum.categories.entity.CategoryEntity;
 import ru.practicum.events.dto.EventState;
 import ru.practicum.users.entity.UserEntity;
@@ -57,14 +58,9 @@ public class EventEntity {
     private EventState state = EventState.PENDING;
     @Column(nullable = false, columnDefinition = "TEXT")
     private String title;
-   // @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
-    // private Boolean available = true;
+    @Formula("(participant_limit = 0 OR participant_limit > confirmed_requests)")
+    private Boolean available;
 
-    @Transient
-    public Boolean getAvailable() {
-        if (participantLimit == null || participantLimit == 0) return true; // нет лимита
-        return participantLimit > (confirmedRequests != null ? confirmedRequests : 0);
-    }
 
 }
 

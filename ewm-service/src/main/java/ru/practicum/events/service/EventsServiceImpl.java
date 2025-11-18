@@ -29,6 +29,7 @@ import ru.practicum.users.repository.UserRepository;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -88,7 +89,7 @@ public class EventsServiceImpl implements EventsService {
                                            LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable,
                                            String sort, Integer from, Integer size) {
 
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
+     //   Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
 
 
         List<Long> categoryIdsLong = categoriesIds == null ? null :
@@ -106,12 +107,38 @@ public class EventsServiceImpl implements EventsService {
                 onlyAvailable
 
         );
-        return  eventsRepository
-                .findAll(spec, pageable)
+        SortType sortType = SortType.from(sort);
+        if (sortType == SortType.EVENT_DATE) {
+
+            Pageable pageable = PageRequest.of(from / size,
+                    size,
+                    Sort.by("eventDate").ascending());
+
+            return eventsRepository.findAll(spec, pageable)
+                    .stream()
+                    .map(mapper::toFullDto)
+                    .peek(e -> e.setViews(getViewsForEvent(e.getId(), e.getCreatedOn())))
+                    .toList();
+        }
+
+        // если нужно по вьюс
+        List<EventFullDto> all = eventsRepository.findAll(spec)
                 .stream()
                 .map(mapper::toFullDto)
-                .peek(event -> event.setViews(getViewsForEvent(event.getId(), event.getCreatedOn())))
                 .toList();
+
+        // Получаем views
+        all.forEach(e -> e.setViews(getViewsForEvent(e.getId(), e.getCreatedOn())));
+
+        // Сортируем по views
+        all = all.stream()
+                .sorted(Comparator.comparingLong(EventFullDto::getViews))
+                .toList();
+
+        int start = Math.min(from, all.size());
+        int end = Math.min(start + size, all.size());
+
+        return all.subList(start, end);
     }
 
     @Override

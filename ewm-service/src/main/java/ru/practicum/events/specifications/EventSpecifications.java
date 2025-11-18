@@ -82,8 +82,8 @@ public class EventSpecifications {
             if (paid != null) {
                 predicates.add(cb.equal(root.get("paid"), paid));
             }
-            if (onlyAvailable != null) {
-                //  predicates.add(cb.equal(root.getAvailable(), onlyAvailable));
+            if (onlyAvailable != null & Boolean.TRUE.equals(onlyAvailable)) {
+                predicates.add(cb.equal(root.get("available"), onlyAvailable));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
