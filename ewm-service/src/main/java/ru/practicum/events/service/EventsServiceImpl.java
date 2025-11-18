@@ -48,7 +48,6 @@ public class EventsServiceImpl implements EventsService {
 
     @Override
     public EventFullDto addEvent(NewEventDto newEventDto, Long userId) {
-        //дату проверить лучше в дто
         EventEntity newEntity = mapper.toEntity(newEventDto);
         newEntity.setInitiator(userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException(userId, "User")));
@@ -65,7 +64,7 @@ public class EventsServiceImpl implements EventsService {
 
     @Override
     public EventFullDto getFullEvent(Long userId, Long eventId) {
-        //404 нет такого эвента e": "Event with id=13 was not found",
+        //404 нет такого эвента
         EventEntity entity = eventsRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException(eventId, "Event"));
         if (!entity.getInitiator().getId().equals(userId)) {
@@ -80,9 +79,6 @@ public class EventsServiceImpl implements EventsService {
     public List<EventFullDto> searchEvents(String text, List<Integer> categoriesIds, Boolean paid,
                                            LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable,
                                            String sort, Integer from, Integer size) {
-
-        //   Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
-
 
         List<Long> categoryIdsLong = categoriesIds == null ? null :
                 categoriesIds.stream()
@@ -113,7 +109,7 @@ public class EventsServiceImpl implements EventsService {
                     .toList();
         }
 
-        // если нужно по вьюс
+        // если нужно сортировать по вьюс
         List<EventFullDto> all = eventsRepository.findAll(spec)
                 .stream()
                 .map(mapper::toFullDto)
@@ -187,10 +183,6 @@ public class EventsServiceImpl implements EventsService {
         // 404 - событие не найдено
         EventEntity entity = eventsRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException(eventId, "Event"));
-        //409	- не удовлетворяет правилам редактирования
-
-        //дата начала изменяемого события должна быть не ранее чем за час от даты публикации. (Ожидается код ошибки 409)
-        //TODO
 
         //событие можно публиковать, только если оно в состоянии ожидания публикации (Ожидается код ошибки 409)
         //событие можно отклонить, только если оно еще не опубликовано (Ожидается код ошибки 409)
@@ -211,35 +203,7 @@ public class EventsServiceImpl implements EventsService {
                 }
             }
         updateEntity(entity, mapper.toEntity(update));
-        /*
 
-        if (!(update.getAnnotation() == null)) {
-            entity.setAnnotation(update.getAnnotation());
-        }
-        if (!(update.getDescription() == null)) {
-            entity.setDescription(update.getDescription());
-        }
-        if (!(update.getEventDate() == null)) {
-            entity.setEvent_date(update.getEventDate());
-        }
-        if (!(update.getLocation() == null)) {
-            updateLocation(entity, update.getLocation());
-        }
-        if (!(update.getPaid() == null)) {
-            entity.setPaid(update.getPaid());
-        }
-        if (!(update.getRequestModeration() == null)) {
-            entity.setRequest_moderation(update.getRequestModeration());
-        }
-        if (!(update.getTitle() == null)) {
-            entity.setTitle(update.getTitle());
-        }
-
-        if (!(update.getParticipantLimit()== null )) {
-                if ( entity.getConfirmed_requests() <=update.getParticipantLimit()) {
-                    entity.setParticipant_limit(update.getParticipantLimit());
-                }
-            } */
         EventFullDto eventFull = mapper.toFullDto(eventsRepository.save(entity));
         eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getCreatedOn()));
         return eventFull;
@@ -258,8 +222,6 @@ public class EventsServiceImpl implements EventsService {
             throw new EventChangeException();
         }
 
-        // дата и время на которые намечено событие не может быть раньше, чем через два часа от текущего момента (Ожидается код ошибки 409)
-        //TODO
 
         if (StateAction.CANCEL_REVIEW.equals(update.getStateAction())) {
             entity.setState(EventState.CANCELED);

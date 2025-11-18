@@ -31,7 +31,6 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryRepository.findById(catId).isEmpty()) {
             throw new EntityNotFoundException(catId, "Category");
         }
-        //проверить что не привязанных событий - 409
         categoryRepository.deleteById(catId);
     }
 
@@ -40,7 +39,6 @@ public class CategoryServiceImpl implements CategoryService {
         CategoryEntity category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         category.setName(name);
-        // проверить что новое тмя уникально - если нет - 409
         return mapper.toDTO(categoryRepository.save(category));
     }
 

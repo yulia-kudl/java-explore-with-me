@@ -13,13 +13,8 @@ import ru.practicum.events.service.EventEntityMapper;
         uses = {EventEntityMapper.class}) //для маппинга эвентов
 public interface CompilationEntityMapper {
 
-    // анализируем в ручную в сервисе
     @Mapping(target = "events", ignore = true)
     CompilationEntity toEntity(NewCompilationDto requestDTO);
-
-    // анализируем в ручную в сервис
-    //   @Mapping(target = "events", ignore = true)
-    //  CompilationEntity toEntity(UpdateCompilationRequest updateDto);
 
     CompilationDto toDto(CompilationEntity entity);
 

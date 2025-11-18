@@ -73,12 +73,6 @@ public class RequestServiceImpl implements RequestService {
         if (!eventEntity.getRequestModeration() || eventEntity.getParticipantLimit() == 0) {
             requestEntity.setStatus(RequestStatus.CONFIRMED);
             eventEntity.setConfirmedRequests(eventEntity.getConfirmedRequests() + 1);
-            if (eventEntity.getParticipantLimit() == eventEntity.getConfirmedRequests().intValue()) {
-                eventEntity.setAvailable(Boolean.FALSE);
-            }
-            if (eventEntity.getParticipantLimit() == 0) {
-                eventEntity.setAvailable(Boolean.TRUE);
-            }
 
         } else {
             requestEntity.setStatus(RequestStatus.PENDING);
@@ -101,11 +95,6 @@ public class RequestServiceImpl implements RequestService {
             Long confirmed = eventEntity.getConfirmedRequests();
             eventEntity.setConfirmedRequests(confirmed - 1);
 
-            // Событие снова доступно, если был лимит
-            if (eventEntity.getParticipantLimit() > 0 &&
-                    eventEntity.getConfirmedRequests() < eventEntity.getParticipantLimit()) {
-                eventEntity.setAvailable(Boolean.TRUE);
-            }
         }
 
         // Устанавливаем статус отменённого запроса
@@ -180,8 +169,7 @@ public class RequestServiceImpl implements RequestService {
         if (request.getStatus().equals(RequestStatus.CONFIRMED)) {
 
             for (RequestEntity r : requests) {
-                // Лимит достигнут -> заявка отклоняется
-                if (confirmed >= limit) {
+                if (confirmed >= limit) { // нужно отменить свыше лимита
                     r.setStatus(RequestStatus.REJECTED);
                     requestsRepository.save(r);
                     rejectedDtos.add(mapper.toDto(r));

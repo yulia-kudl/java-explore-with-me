@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Data
 @AllArgsConstructor
@@ -35,17 +36,13 @@ public class NewEventDto {
     private String title;
 
 
-   /* @AssertTrue(message = "Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value")
+    @AssertTrue(message = "Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value")
     public boolean isEventDateValid() {
         if (eventDate == null)
             return false;
 
-        try {
-            LocalDateTime date = LocalDateTime.parse(eventDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            return date.isAfter(LocalDateTime.now().plusHours(2));
-        } catch (Exception e) {
-            return false;
-        }
-    } */
+        return eventDate.isAfter(LocalDateTime.now().plusHours(2));
+
+    }
 }
 

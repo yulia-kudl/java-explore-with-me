@@ -57,14 +57,6 @@ public class EventsController {
 
     }
 
-
-// TODO
-    //  GET  /users/{userId}/events/{eventId}/requests
-
-    //TODO
-    //  PATCH    /users/{userId}/events/{eventId}/requests
-
-
     //public
 
     //  GET  /events?text={text}&categories={}&paid={paid}&rangeStart={rangeStart}&rangeEnd={rangeEnd}&
@@ -82,7 +74,6 @@ public class EventsController {
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size
     ) {
-        // TODO вызвать статистику
         statsClient.postHit(request);
         rangeStart = rangeEnd == null ? LocalDateTime.now() : rangeStart;
         if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
@@ -97,7 +88,6 @@ public class EventsController {
     // GET   /events/{id}
     @GetMapping("events/{id}")
     EventFullDto getEventById(HttpServletRequest request, @PathVariable Long id) {
-        // TODO добавить статистику
         statsClient.postHit(request);
         return eventsService.getEventById(id);
     }

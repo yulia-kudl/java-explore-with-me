@@ -41,8 +41,6 @@ public class StatsClient {
         hitRequest.setUri(uri);
         hitRequest.setTimestamp(LocalDateTime.now());
 
-        System.out.println("url = " + statsServerUrl + "/hit");
-
         restTemplate.postForObject(statsServerUrl + "/hit", hitRequest, Void.class);
     }
 

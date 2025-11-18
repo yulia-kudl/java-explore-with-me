@@ -11,7 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateCompilationRequest {
-
     private List<Long> events;
     private Boolean pinned;
     @Size(min = 1, max = 50, message = "title length must be between 1 and 50 characters")
