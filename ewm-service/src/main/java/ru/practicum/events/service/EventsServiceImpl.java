@@ -71,7 +71,7 @@ public class EventsServiceImpl implements EventsService {
             throw new EntityNotFoundException(eventId, "Event");
         }
         EventFullDto eventFull = mapper.toFullDto(entity);
-        eventFull.setViews(getViewsForEvent(eventId, eventFull.getCreatedOn()));
+        eventFull.setViews(getViewsForEvent(eventId, eventFull.getPublishedOn()));
         return eventFull;
     }
 
@@ -105,7 +105,7 @@ public class EventsServiceImpl implements EventsService {
             return eventsRepository.findAll(spec, pageable)
                     .stream()
                     .map(mapper::toFullDto)
-                    .peek(e -> e.setViews(getViewsForEvent(e.getId(), e.getCreatedOn())))
+                    .peek(e -> e.setViews(getViewsForEvent(e.getId(), e.getPublishedOn())))
                     .toList();
         }
 
@@ -116,7 +116,7 @@ public class EventsServiceImpl implements EventsService {
                 .toList();
 
         // Получаем views
-        all.forEach(e -> e.setViews(getViewsForEvent(e.getId(), e.getCreatedOn())));
+        all.forEach(e -> e.setViews(getViewsForEvent(e.getId(), e.getPublishedOn())));
 
         // Сортируем по views
         all = all.stream()
@@ -139,7 +139,7 @@ public class EventsServiceImpl implements EventsService {
             throw new EntityNotFoundException(id, "Event");
         }
         EventFullDto eventFull = mapper.toFullDto(entity);
-        eventFull.setViews(getViewsForEvent(id, eventFull.getCreatedOn()));
+        eventFull.setViews(getViewsForEvent(id, eventFull.getPublishedOn()));
         return eventFull;
 
     }
@@ -174,7 +174,7 @@ public class EventsServiceImpl implements EventsService {
                 .findAll(spec, pageable)
                 .stream()
                 .map(mapper::toFullDto)
-                .peek(event -> event.setViews(getViewsForEvent(event.getId(), event.getCreatedOn())))
+                .peek(event -> event.setViews(getViewsForEvent(event.getId(), event.getPublishedOn())))
                 .toList();
     }
 
@@ -205,7 +205,7 @@ public class EventsServiceImpl implements EventsService {
         updateEntity(entity, mapper.toEntity(update));
 
         EventFullDto eventFull = mapper.toFullDto(eventsRepository.save(entity));
-        eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getCreatedOn()));
+        eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getPublishedOn()));
         return eventFull;
 
     }
@@ -231,7 +231,7 @@ public class EventsServiceImpl implements EventsService {
         }
         updateEntity(entity, mapper.toEntity(update));
         EventFullDto eventFull = mapper.toFullDto(eventsRepository.save(entity));
-        eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getCreatedOn()));
+        eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getPublishedOn()));
         return eventFull;
     }
 
@@ -282,11 +282,14 @@ public class EventsServiceImpl implements EventsService {
 
     }
 
-    private long getViewsForEvent(Long eventId, LocalDateTime createdOn) {
+    private long getViewsForEvent(Long eventId, LocalDateTime publishedOn) {
+        if (publishedOn == null) {
+            return 0;
+        }
         List<String> uris = List.of("/events/" + eventId);
 
         List<StatsResponse> stats = statsClient.getStats(
-                createdOn,
+                publishedOn,
                 LocalDateTime.now(),
                 uris,
                 true
