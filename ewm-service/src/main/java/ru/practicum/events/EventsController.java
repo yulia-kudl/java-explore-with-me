@@ -4,16 +4,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ErrorHandler.InvalidDateTimeException;
 import ru.practicum.StatsClient;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.service.EventsService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -64,24 +61,11 @@ public class EventsController {
     @GetMapping("events")
     List<EventFullDto> getPublicEvents(
             HttpServletRequest request,
-            @RequestParam(required = false) String text,
-            @RequestParam(required = false) List<Integer> categories,
-            @RequestParam(required = false) Boolean paid,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-            @RequestParam(required = false) Boolean onlyAvailable,
-            @RequestParam(required = false) String sort,
-            @RequestParam(defaultValue = "0") Integer from,
-            @RequestParam(defaultValue = "10") Integer size
+            @RequestParam @Valid SearchPublicFilterDto filterDto
     ) {
         statsClient.postHit(request);
-        rangeStart = rangeEnd == null ? LocalDateTime.now() : rangeStart;
-        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
-            throw new InvalidDateTimeException("range");
 
-        }
-        return eventsService.searchEvents(text, categories, paid, rangeStart,
-                rangeEnd, onlyAvailable, sort, from, size);
+        return eventsService.searchEvents(filterDto);
     }
 
 
@@ -97,16 +81,9 @@ public class EventsController {
 
     // GET  admin/events?users=2&states=string&categories=2&rangeStart=222&rangeEnd=222&from=0&size=10
     @GetMapping("admin/events")
-    List<EventFullDto> getAdminEvents(
-            @RequestParam(required = false) List<Integer> users,
-            @RequestParam(required = false) List<String> states,
-            @RequestParam(required = false) List<Integer> categories,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-            @RequestParam(defaultValue = "0") Integer from,
-            @RequestParam(defaultValue = "10") Integer size
-    ) {
-        return eventsService.getEventsForAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
+    List<EventFullDto> getAdminEvents( @RequestParam @Valid SearchAdminFilterDto filterDto) {
+
+        return eventsService.getEventsForAdmin(filterDto);
     }
 
 

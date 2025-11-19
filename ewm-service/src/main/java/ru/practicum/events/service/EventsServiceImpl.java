@@ -12,6 +12,7 @@ import ru.practicum.ErrorHandler.EventPublishException;
 import ru.practicum.StatsClient;
 import ru.practicum.StatsResponse;
 import ru.practicum.categories.repository.CategoryRepository;
+import ru.practicum.events.SortType;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.entity.EventEntity;
 import ru.practicum.events.entity.LocationEntity;
@@ -76,30 +77,28 @@ public class EventsServiceImpl implements EventsService {
     }
 
     @Override
-    public List<EventFullDto> searchEvents(String text, List<Integer> categoriesIds, Boolean paid,
-                                           LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable,
-                                           String sort, Integer from, Integer size) {
+    public List<EventFullDto> searchEvents( SearchPublicFilterDto filterDto) {
 
-        List<Long> categoryIdsLong = categoriesIds == null ? null :
-                categoriesIds.stream()
+        List<Long> categoryIdsLong = filterDto.getCategories() == null ? null :
+                filterDto.getCategories().stream()
                         .map(Integer::longValue)
                         .toList();
 
 
         Specification<EventEntity> spec = EventSpecifications.publicFilter(
-                text,
+                filterDto.getText(),
                 categoryIdsLong,
-                paid,
-                rangeStart,
-                rangeEnd,
-                onlyAvailable
+                filterDto.getPaid(),
+                filterDto.getRangeStart(),
+                filterDto.getRangeEnd(),
+                filterDto.getOnlyAvailable()
 
         );
-        SortType sortType = SortType.from(sort);
-        if (sortType == SortType.EVENT_DATE) {
 
-            Pageable pageable = PageRequest.of(from / size,
-                    size,
+        if (filterDto.getSort() != null && filterDto.getSort() == SortType.EVENT_DATE) {
+
+            Pageable pageable = PageRequest.of(filterDto.getFrom() / filterDto.getSize(),
+                    filterDto.getSize(),
                     Sort.by("eventDate").ascending());
 
             return eventsRepository.findAll(spec, pageable)
@@ -123,8 +122,8 @@ public class EventsServiceImpl implements EventsService {
                 .sorted(Comparator.comparingLong(EventFullDto::getViews))
                 .toList();
 
-        int start = Math.min(from, all.size());
-        int end = Math.min(start + size, all.size());
+        int start = Math.min(filterDto.getFrom(), all.size());
+        int end = Math.min(start + filterDto.getSize(), all.size());
 
         return all.subList(start, end);
     }
@@ -145,29 +144,26 @@ public class EventsServiceImpl implements EventsService {
     }
 
     @Override
-    public List<EventFullDto> getEventsForAdmin(List<Integer> users, List<String> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
+    public List<EventFullDto> getEventsForAdmin(SearchAdminFilterDto filterDto) {
+        Pageable pageable = PageRequest.of(filterDto.getFrom() / filterDto.getSize(), filterDto.getSize(), Sort.by("id").ascending());
 
-        List<Long> userIdsLong = users == null ? null :
-                users.stream()
+        List<Long> userIdsLong = filterDto.getUsers() == null ? null :
+                filterDto.getUsers().stream()
                         .map(Integer::longValue)
                         .toList();
 
-        List<Long> categoryIdsLong = categories == null ? null :
-                categories.stream()
+        List<Long> categoryIdsLong = filterDto.getCategories() == null ? null :
+                filterDto.getCategories().stream()
                         .map(Integer::longValue)
                         .toList();
-        List<EventState> stateEnums = states == null ? null :
-                states.stream()
-                        .map(EventState::valueOf)
-                        .toList();
+        List<EventState> stateEnums = filterDto.getStates();
 
         Specification<EventEntity> spec = EventSpecifications.adminFilter(
                 userIdsLong,
                 stateEnums,
                 categoryIdsLong,
-                rangeStart,
-                rangeEnd
+                filterDto.getRangeStart(),
+                filterDto.getRangeEnd()
         );
 
         return eventsRepository
