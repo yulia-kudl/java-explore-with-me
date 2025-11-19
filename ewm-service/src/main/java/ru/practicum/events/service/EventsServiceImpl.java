@@ -41,7 +41,7 @@ public class EventsServiceImpl implements EventsService {
     public List<EventShortDto> getUserEvents(Long userId, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
 
-        return eventsRepository.findAllByInitiatorId(userId, pageable)
+        return eventsRepository.findAllByInitiatorId(userId, getPageable(from, size, SortType.ID))
                 .stream()
                 .map(mapper::toShortDto)
                 .toList();
@@ -97,11 +97,7 @@ public class EventsServiceImpl implements EventsService {
 
         if (filterDto.getSort() != null && filterDto.getSort() == SortType.EVENT_DATE) {
 
-            Pageable pageable = PageRequest.of(filterDto.getFrom() / filterDto.getSize(),
-                    filterDto.getSize(),
-                    Sort.by("eventDate").ascending());
-
-            return eventsRepository.findAll(spec, pageable)
+            return eventsRepository.findAll(spec, getPageable(filterDto.getFrom(), filterDto.getSize(), filterDto.getSort()))
                     .stream()
                     .map(mapper::toFullDto)
                     .peek(e -> e.setViews(getViewsForEvent(e.getId(), e.getPublishedOn())))
@@ -145,7 +141,6 @@ public class EventsServiceImpl implements EventsService {
 
     @Override
     public List<EventFullDto> getEventsForAdmin(SearchAdminFilterDto filterDto) {
-        Pageable pageable = PageRequest.of(filterDto.getFrom() / filterDto.getSize(), filterDto.getSize(), Sort.by("id").ascending());
 
         List<Long> userIdsLong = filterDto.getUsers() == null ? null :
                 filterDto.getUsers().stream()
@@ -167,7 +162,7 @@ public class EventsServiceImpl implements EventsService {
         );
 
         return eventsRepository
-                .findAll(spec, pageable)
+                .findAll(spec, getPageable(filterDto.getFrom(), filterDto.getSize(), SortType.ID))
                 .stream()
                 .map(mapper::toFullDto)
                 .peek(event -> event.setViews(getViewsForEvent(event.getId(), event.getPublishedOn())))
@@ -296,6 +291,23 @@ public class EventsServiceImpl implements EventsService {
         }
 
         return stats.getFirst().getHits();
+    }
+
+    private Pageable getPageable(Integer from, Integer size, SortType sort) {
+        switch (sort) {
+            case EVENT_DATE -> {
+                return PageRequest.of(from / size, size, Sort.by("eventDate").ascending());
+            }
+            case VIEWS -> {
+                return PageRequest.of(from / size, size, Sort.by("views").ascending());
+
+            }
+            default -> {
+                return PageRequest.of(from / size, size, Sort.by("id").ascending());
+            }
+        }
+
+
     }
 
 
