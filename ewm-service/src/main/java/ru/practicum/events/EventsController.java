@@ -81,7 +81,7 @@ public class EventsController {
 
     // GET  admin/events?users=2&states=string&categories=2&rangeStart=222&rangeEnd=222&from=0&size=10
     @GetMapping("admin/events")
-    List<EventFullDto> getAdminEvents( @RequestParam @Valid SearchAdminFilterDto filterDto) {
+    List<EventFullDto> getAdminEvents(@RequestParam @Valid SearchAdminFilterDto filterDto) {
 
         return eventsService.getEventsForAdmin(filterDto);
     }

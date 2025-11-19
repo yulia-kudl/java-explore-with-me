@@ -77,7 +77,7 @@ public class EventsServiceImpl implements EventsService {
     }
 
     @Override
-    public List<EventFullDto> searchEvents( SearchPublicFilterDto filterDto) {
+    public List<EventFullDto> searchEvents(SearchPublicFilterDto filterDto) {
 
         List<Long> categoryIdsLong = filterDto.getCategories() == null ? null :
                 filterDto.getCategories().stream()

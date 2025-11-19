@@ -3,7 +3,6 @@ package ru.practicum.events.service;
 import org.springframework.stereotype.Service;
 import ru.practicum.events.dto.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service

@@ -175,7 +175,7 @@ public class RequestServiceImpl implements RequestService {
                     r.setStatus(RequestStatus.REJECTED);
                     rejectedDtos.add(mapper.toDto(r));
                     continue;
-                   }
+                }
                 // Подтверждаем
                 r.setStatus(RequestStatus.CONFIRMED);
                 confirmedDtos.add(mapper.toDto(r));
