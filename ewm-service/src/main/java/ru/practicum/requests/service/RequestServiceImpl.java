@@ -18,8 +18,10 @@ import ru.practicum.users.entity.UserEntity;
 import ru.practicum.users.repository.UserRepository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -156,13 +158,13 @@ public class RequestServiceImpl implements RequestService {
 // если нужно отклонить
         if (request.getStatus().equals(RequestStatus.REJECTED)) {
 
-            for (RequestEntity r : requests) {
-                r.setStatus(RequestStatus.REJECTED);
-                requestsRepository.save(r);
-                rejectedDtos.add(mapper.toDto(r));
-            }
+            requests.forEach(r -> r.setStatus(RequestStatus.REJECTED));
+            requestsRepository.saveAll(requests);
 
-            return result;
+            rejectedDtos = requests.stream()
+                    .map(mapper::toDto)
+                    .collect(Collectors.toList());
+            return new EventRequestStatusUpdateResult(Collections.emptyList(), rejectedDtos);
         }
 
 // подтверждение
@@ -171,25 +173,19 @@ public class RequestServiceImpl implements RequestService {
             for (RequestEntity r : requests) {
                 if (confirmed >= limit) { // нужно отменить свыше лимита
                     r.setStatus(RequestStatus.REJECTED);
-                    requestsRepository.save(r);
                     rejectedDtos.add(mapper.toDto(r));
                     continue;
-                }
-
+                   }
                 // Подтверждаем
                 r.setStatus(RequestStatus.CONFIRMED);
-                requestsRepository.save(r);
                 confirmedDtos.add(mapper.toDto(r));
                 confirmed++;
             }
+            requestsRepository.saveAll(requests);
 
             // Обновляем число подтверждённых
             eventEntity.setConfirmedRequests((long) confirmed);
 
-
-            if (confirmed >= limit) {
-                eventEntity.setAvailable(false);
-            }
 
             eventsRepository.save(eventEntity);
 
