@@ -6,11 +6,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import ru.practicum.ErrorHandler.CategoryNotEmptyException;
 import ru.practicum.ErrorHandler.EntityNotFoundException;
 import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.categories.dto.NewCategoryDto;
 import ru.practicum.categories.entity.CategoryEntity;
 import ru.practicum.categories.repository.CategoryRepository;
+import ru.practicum.events.repository.EventsRepository;
 
 import java.util.List;
 
@@ -19,6 +21,7 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryEntityMapper mapper;
+    private final EventsRepository eventsRepository;
 
     @Override
     @Transactional
@@ -30,6 +33,9 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(Long catId) {
         if (categoryRepository.findById(catId).isEmpty()) {
             throw new EntityNotFoundException(catId, "Category");
+        }
+        if (eventsRepository.existsByCategoryId(catId)) {
+            throw new CategoryNotEmptyException("The category is not empty");
         }
         categoryRepository.deleteById(catId);
     }

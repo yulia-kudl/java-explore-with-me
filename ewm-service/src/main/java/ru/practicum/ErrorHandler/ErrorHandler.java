@@ -66,7 +66,8 @@ public class ErrorHandler {
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(EventChangeException.class)
+    @ExceptionHandler({EventChangeException.class,
+    CategoryNotEmptyException.class})
     public ResponseEntity<ErrorResponse> handleEventState(EventChangeException ex) {
         ErrorResponse response = new ErrorResponse(
                 "CONFLICT",

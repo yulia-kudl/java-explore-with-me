@@ -73,7 +73,6 @@ public class CompilationServiceImpl implements CompilationService {
         // 404 NOT FOUND
         CompilationEntity entity = compilationRepository.findById(compId)
                 .orElseThrow(() -> new EntityNotFoundException(compId, "Compilation"));
-        entity.getEvents().clear(); //удаляем связь эвент - подборка из отдельной таблицы
         compilationRepository.delete(entity);
     }
 
