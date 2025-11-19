@@ -68,7 +68,7 @@ public class ErrorHandler {
 
     @ExceptionHandler({EventChangeException.class,
     CategoryNotEmptyException.class})
-    public ResponseEntity<ErrorResponse> handleEventState(EventChangeException ex) {
+    public ResponseEntity<ErrorResponse> handleEventState(RuntimeException ex) {
         ErrorResponse response = new ErrorResponse(
                 "CONFLICT",
                 "For the requested operation the conditions are not met.",
