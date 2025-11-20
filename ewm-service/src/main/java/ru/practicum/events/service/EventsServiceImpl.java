@@ -101,8 +101,8 @@ public class EventsServiceImpl implements EventsService {
             List<EventFullDto> results = eventsRepository.findAll(
                             spec,
                             getPageable(filterDto.getFrom(), filterDto.getSize(), filterDto.getSort())
-                    ).stream().
-                    map(mapper::toFullDto)
+                    ).stream()
+                    .map(mapper::toFullDto)
                     .toList();
             return addViewsToList(results);
         }
