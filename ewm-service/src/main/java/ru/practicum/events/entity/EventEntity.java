@@ -59,8 +59,7 @@ public class EventEntity {
     private String title;
     @Formula("(participant_limit = 0 OR participant_limit > confirmed_requests)")
     private Boolean available;
-    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
-    private Long views = 0L;
+
 
 }
 

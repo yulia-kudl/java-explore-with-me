@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import ru.practicum.ErrorHandler.EntityNotFoundException;
 import ru.practicum.ErrorHandler.EventChangeException;
 import ru.practicum.ErrorHandler.EventPublishException;
+import ru.practicum.StatsClient;
+import ru.practicum.StatsResponse;
 import ru.practicum.categories.repository.CategoryRepository;
 import ru.practicum.events.SortType;
 import ru.practicum.events.dto.*;
@@ -20,8 +22,11 @@ import ru.practicum.events.specifications.EventSpecifications;
 import ru.practicum.users.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -31,11 +36,11 @@ public class EventsServiceImpl implements EventsService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
+    private final StatsClient statsClient;
 
 
     @Override
     public List<EventShortDto> getUserEvents(Long userId, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
 
         return eventsRepository.findAllByInitiatorId(userId, getPageable(from, size, SortType.ID))
                 .stream()
@@ -67,7 +72,9 @@ public class EventsServiceImpl implements EventsService {
         if (!entity.getInitiator().getId().equals(userId)) {
             throw new EntityNotFoundException(eventId, "Event");
         }
-        return mapper.toFullDto(entity);
+        EventFullDto eventFull = mapper.toFullDto(entity);
+        eventFull.setViews(getViewsForEvent(eventId, eventFull.getPublishedOn()));
+        return eventFull;
     }
 
     @Override
@@ -88,13 +95,36 @@ public class EventsServiceImpl implements EventsService {
                 filterDto.getOnlyAvailable()
 
         );
-        SortType sort = Optional.ofNullable(filterDto.getSort())
-                .orElse(SortType.EVENT_DATE);
-        return eventsRepository.findAll(spec, getPageable(filterDto.getFrom(), filterDto.getSize(), sort))
+
+        if (filterDto.getSort() != null && filterDto.getSort() == SortType.EVENT_DATE) {
+
+            List<EventFullDto> results = eventsRepository.findAll(
+                            spec,
+                            getPageable(filterDto.getFrom(), filterDto.getSize(), filterDto.getSort())
+                    ).stream().
+                    map(mapper::toFullDto)
+                    .toList();
+            return addViewsToList(results);
+        }
+
+        // если нужно сортировать по вьюс
+        List<EventFullDto> all = eventsRepository.findAll(spec)
                 .stream()
                 .map(mapper::toFullDto)
                 .toList();
 
+        // Добавляем views
+        all = addViewsToList(all);
+
+// 3. Сортируем по views
+        all = all.stream()
+                .sorted(Comparator.comparingLong(EventFullDto::getViews))
+                .toList();
+
+        int start = Math.min(filterDto.getFrom(), all.size());
+        int end = Math.min(start + filterDto.getSize(), all.size());
+
+        return all.subList(start, end);
     }
 
     @Override
@@ -106,8 +136,9 @@ public class EventsServiceImpl implements EventsService {
         if (!entity.getState().equals(EventState.PUBLISHED)) {
             throw new EntityNotFoundException(id, "Event");
         }
-        entity.setViews(entity.getViews() + 1);
-        return mapper.toFullDto(entity);
+        EventFullDto eventFull = mapper.toFullDto(entity);
+        eventFull.setViews(getViewsForEvent(id, eventFull.getPublishedOn()));
+        return eventFull;
 
     }
 
@@ -133,11 +164,16 @@ public class EventsServiceImpl implements EventsService {
                 filterDto.getRangeEnd()
         );
 
-        return eventsRepository
+        List<EventFullDto> events = eventsRepository
                 .findAll(spec, getPageable(filterDto.getFrom(), filterDto.getSize(), SortType.ID))
                 .stream()
                 .map(mapper::toFullDto)
                 .toList();
+
+// Массовое добавление просмотров
+        events = addViewsToList(events);
+
+        return events;
     }
 
     @Override
@@ -166,7 +202,9 @@ public class EventsServiceImpl implements EventsService {
             }
         updateEntity(entity, mapper.toEntity(update));
 
-        return mapper.toFullDto(eventsRepository.save(entity));
+        EventFullDto eventFull = mapper.toFullDto(eventsRepository.save(entity));
+        eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getPublishedOn()));
+        return eventFull;
 
     }
 
@@ -190,7 +228,9 @@ public class EventsServiceImpl implements EventsService {
             entity.setState(EventState.PENDING);
         }
         updateEntity(entity, mapper.toEntity(update));
-        return mapper.toFullDto(eventsRepository.save(entity));
+        EventFullDto eventFull = mapper.toFullDto(eventsRepository.save(entity));
+        eventFull.setViews(getViewsForEvent(eventFull.getId(), eventFull.getPublishedOn()));
+        return eventFull;
     }
 
 
@@ -237,7 +277,75 @@ public class EventsServiceImpl implements EventsService {
                 entity.setParticipantLimit(update.getParticipantLimit());
             }
         }
+
     }
+
+    private List<EventFullDto> addViewsToList(List<EventFullDto> events) {
+
+        LocalDateTime minDate = eventsRepository.findMinPublishedDate();
+
+        // Если минимальной даты нет — значит нет опубликованных событий → все views = 0
+        if (minDate == null) {
+            return events.stream()
+                    .peek(event -> event.setViews(0L))
+                    .toList();
+        }
+
+        // Собираем URIs
+        List<String> uris = events.stream()
+                .map(e -> "/events/" + e.getId())
+                .toList();
+
+        // запрос в stats
+        List<StatsResponse> stats = statsClient.getStats(
+                minDate,
+                LocalDateTime.now(),
+                uris,
+                false
+        );
+
+        Map<Long, Integer> hitsMap = stats.stream()
+                .collect(Collectors.toMap(
+                        s -> extractIdFromUri(s.getUri()),
+                        StatsResponse::getHits
+                ));
+
+        // Добавляем views в DTO
+        return events.stream()
+                .peek(event -> {
+                    long views = hitsMap.getOrDefault(event.getId(), 0).longValue();
+                    event.setViews(views);
+                })
+                .toList();
+    }
+
+
+    private Long extractIdFromUri(String uri) {
+        //  /events/123
+        return Long.parseLong(uri.substring(uri.lastIndexOf('/') + 1));
+    }
+
+
+    private long getViewsForEvent(Long eventId, LocalDateTime publishedOn) {
+        if (publishedOn == null) {
+            return 0;
+        }
+        List<String> uris = List.of("/events/" + eventId);
+
+        List<StatsResponse> stats = statsClient.getStats(
+                publishedOn,
+                LocalDateTime.now(),
+                uris,
+                true
+        );
+
+        if (stats == null || stats.isEmpty()) {
+            return 0L;
+        }
+
+        return stats.getFirst().getHits();
+    }
+
 
     private Pageable getPageable(Integer from, Integer size, SortType sort) {
         switch (sort) {
@@ -252,6 +360,7 @@ public class EventsServiceImpl implements EventsService {
                 return PageRequest.of(from / size, size, Sort.by("id").ascending());
             }
         }
+
 
     }
 
