@@ -35,7 +35,7 @@ public class StatServiceImpl implements StatService {
         }
         return stats.stream()
                 .map(row -> {
-                   Integer hits = ((Number) row[2]).intValue();
+                    Integer hits = ((Number) row[2]).intValue();
                     return new StatsResponse(
                             (String) row[0],
                             (String) row[1],
