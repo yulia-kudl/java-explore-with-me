@@ -989,14 +989,20 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/events/{{eventId}}/comments",
+							"raw": "{{baseUrl}}/events/:eventId/comments",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"events",
-								"{{eventId}}",
+								":eventId",
 								"comments"
+							],
+							"variable": [
+								{
+									"key": "eventId",
+									"value": "{{eid}}"
+								}
 							]
 						}
 					},
