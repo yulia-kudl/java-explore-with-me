@@ -949,7 +949,7 @@
 									"\r",
 									"        // Если комментарий уже создан и id сохранён\r",
 									"\r",
-									"        let commentId = pm.collectionVariables.get(\"eid\");\r",
+									"        let eventId = pm.collectionVariables.get(\"eid\");\r",
 									"       \r",
 									"    \r",
 									"\r",
