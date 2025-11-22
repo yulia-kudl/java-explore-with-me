@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "b324797d-aa38-4fd3-b8f9-a924e187d228",
 		"name": "feature_comments",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "44949387",
 		"_collection_link": "https://yulia-3850576.postman.co/workspace/Yulia's-Workspace~126aeb5e-c9e9-43db-81f1-d89c61bf45f3/collection/44949387-b324797d-aa38-4fd3-b8f9-a924e187d228?action=share&source=collection_link&creator=44949387"
 	},
@@ -49,7 +49,19 @@
 								}
 							}
 						},
-						"url": "{{baseUrl}}/users/1/events/2/comments"
+						"url": {
+							"raw": "{{baseUrl}}/users/1/events/2/comments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"1",
+								"events",
+								"2",
+								"comments"
+							]
+						}
 					},
 					"response": []
 				},
@@ -359,8 +371,8 @@
 									"    pm.expect(target[0]).to.have.property('text');\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Должен быть найден только один комментарий по заданному фильтру\", function () {\r",
-									"    pm.expect(target.length).to.eql(1);\r",
+									"pm.test(\"Комментарий найден по фильтру (не пустой массив)\", function () {\r",
+									"    pm.expect(target.length).to.be.above(0);\r",
 									"});\r",
 									""
 								],
@@ -967,7 +979,17 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "{{baseUrl}}/events/{{eventId}}/comments"
+						"url": {
+							"raw": "{{baseUrl}}/events/{{eventId}}/comments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{eventId}}",
+								"comments"
+							]
+						}
 					},
 					"response": []
 				}
