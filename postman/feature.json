@@ -73,7 +73,7 @@
 							"script": {
 								"exec": [
 									"const main = async () => {\r",
-									"    const api = new API(pm); // Ваш API-класс для обёртки запросов\r",
+									"    const api = new API(pm); \r",
 									"    const rnd = new RandomUtils(); // Ваш генератор случайных данных\r",
 									"\r",
 									"    try {\r",
@@ -100,6 +100,7 @@
 									"            raw: JSON.stringify({ text: commentText }),\r",
 									"            options: { raw: { language: 'json' } }\r",
 									"        });\r",
+									"        \r",
 									"\r",
 									"        const comment = await api.addComment(user.id, event.id, { text: commentText });\r",
 									"        pm.collectionVariables.set(\"commentId\", comment.id);\r",
@@ -319,7 +320,7 @@
 							"script": {
 								"exec": [
 									"const main = async () => {\r",
-									"    const api = new API(pm);       // Ваш helper API\r",
+									"    const api = new API(pm);       \r",
 									"    const rnd = new RandomUtils(); // Генератор тестовых данных\r",
 									"\r",
 									"    try {\r",
@@ -413,7 +414,7 @@
 							"script": {
 								"exec": [
 									"const main = async () => {\r",
-									"    const api = new API(pm);       // Ваш helper API\r",
+									"    const api = new API(pm);       \r",
 									"    const rnd = new RandomUtils(); // Генератор тестовых данных\r",
 									"\r",
 									"    try {\r",
@@ -562,8 +563,8 @@
 							"script": {
 								"exec": [
 									"const main = async () => {\r",
-									"    const api = new API(pm);       // Ваш helper API\r",
-									"    const rnd = new RandomUtils(); // Генератор тестовых данных\r",
+									"    const api = new API(pm);       \r",
+									"    const rnd = new RandomUtils(); \r",
 									"\r",
 									"    try {\r",
 									"        // Если пользователь уже создан и id сохранён\r",
@@ -663,8 +664,8 @@
 							"script": {
 								"exec": [
 									"const main = async () => {\r",
-									"    const api = new API(pm); // Ваш API-класс для обёртки запросов\r",
-									"    const rnd = new RandomUtils(); // Ваш генератор случайных данных\r",
+									"    const api = new API(pm); \r",
+									"    const rnd = new RandomUtils(); \r",
 									"\r",
 									"    try {\r",
 									"        // Создаем пользователя и категорию\r",
@@ -801,7 +802,7 @@
 							"script": {
 								"exec": [
 									"const main = async () => {\r",
-									"    const api = new API(pm);       // Ваш helper API\r",
+									"    const api = new API(pm);       \r",
 									"    const rnd = new RandomUtils(); // Генератор тестовых данных\r",
 									"\r",
 									"    try {\r",
@@ -940,15 +941,15 @@
 							"script": {
 								"exec": [
 									"const main = async () => {\r",
-									"    const api = new API(pm);       // Ваш helper API\r",
-									"    const rnd = new RandomUtils(); // Генератор тестовых данных\r",
+									"    const api = new API(pm);       \r",
+									"    const rnd = new RandomUtils();\r",
 									"\r",
 									"    try {\r",
 									"       \r",
 									"\r",
 									"        // Если комментарий уже создан и id сохранён\r",
 									"\r",
-									"        let commentId = pm.collectionVariables.get(\"eventId\");\r",
+									"        let commentId = pm.collectionVariables.get(\"eid\");\r",
 									"       \r",
 									"    \r",
 									"\r",
