@@ -271,9 +271,9 @@
 									"});\r",
 									"\r",
 									"// Проверка, что id комментария соответствует сохранённому\r",
-									"pm.test(\"ID комментария совпадает с сохранённым\", function () {\r",
-									"    const savedCommentId = pm.collectionVariables.get(\"commentId\");\r",
-									"    pm.expect(responseBody.id.toString()).to.equal(savedCommentId.toString());\r",
+									"\r",
+									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+									"    pm.expect(responseBody.id).equal(pm.collectionVariables.get(\"commentId\"));\r",
 									"});\r",
 									""
 								],
@@ -770,6 +770,15 @@
 					"request": {
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request_body}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
 							"raw": "{{baseUrl}}/users/:userId/events/:eventId/comments",
 							"host": [
