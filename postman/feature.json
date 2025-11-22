@@ -960,6 +960,7 @@
 			"listen": "prerequest",
 			"script": {
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					"API = class {",
 					"    constructor(postman, verbose = false, baseUrl = \"http://localhost:8080\") {",
@@ -978,6 +979,15 @@
 					"",
 					"    async addEvent(userId, event, verbose=null) {",
 					"        return this.post(\"/users/\" + userId + \"/events\", event, \"Ошибка при добавлении нового события: \", verbose);",
+					"    }",
+					"",
+					"     async addComment(userId, eventId, body, verbose=null) {",
+					"        return this.post(",
+					"            \"/users/\" + userId + \"/events/\" + eventId + \"/comments\",",
+					"            body,",
+					"            \"Ошибка при добавлении комментария: \",",
+					"            verbose",
+					"        );",
 					"    }",
 					"",
 					"    async addCompilation(compilation, verbose=null) {",
@@ -1023,6 +1033,7 @@
 					"    async patch(path, body = null, errorText = \"Ошибка при выполнении patch-запроса: \", verbose=null) {",
 					"        return this.sendRequest(\"PATCH\", path, body, errorText, verbose);",
 					"    }",
+					"",
 					"",
 					"    async get(path, body = null, errorText = \"Ошибка при выполнении get-запроса: \", verbose=null) {",
 					"        return this.sendRequest(\"GET\", path, body, errorText, verbose);",
@@ -1142,6 +1153,7 @@
 			"listen": "test",
 			"script": {
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					""
 				]
@@ -1151,8 +1163,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:8080",
-			"type": "string"
+			"value": "http://localhost:8080"
 		},
 		{
 			"key": "name",
@@ -1160,13 +1171,11 @@
 		},
 		{
 			"key": "usersCount",
-			"value": 1,
-			"type": "number"
+			"value": 1
 		},
 		{
 			"key": "catid",
-			"value": 1,
-			"type": "number"
+			"value": 1
 		},
 		{
 			"key": "request_body",
@@ -1182,8 +1191,7 @@
 		},
 		{
 			"key": "uid",
-			"value": 1,
-			"type": "number"
+			"value": 1
 		},
 		{
 			"key": "catname",
@@ -1191,13 +1199,11 @@
 		},
 		{
 			"key": "eid",
-			"value": 1,
-			"type": "number"
+			"value": 1
 		},
 		{
 			"key": "compid",
-			"value": 1,
-			"type": "number"
+			"value": 1
 		},
 		{
 			"key": "toCheck",
@@ -1213,8 +1219,7 @@
 		},
 		{
 			"key": "reqid",
-			"value": 1,
-			"type": "number"
+			"value": 1
 		},
 		{
 			"key": "catId",
@@ -1246,13 +1251,11 @@
 		},
 		{
 			"key": "commentId",
-			"value": "",
-			"type": "default"
+			"value": ""
 		},
 		{
 			"key": "eventId",
-			"value": "",
-			"type": "default"
+			"value": ""
 		}
 	]
 }

@@ -24,8 +24,8 @@ public class CommentController {
     private final CommentService commentService;
 
     // private
-    // PUT /users/{userId}/events/{eventId}/comments - добавить коммент 201
-    @PutMapping("users/{userId}/events/{eventId}/comments")
+    // POST /users/{userId}/events/{eventId}/comments - добавить коммент 201
+    @PostMapping("users/{userId}/events/{eventId}/comments")
     @ResponseStatus(HttpStatus.CREATED)
     CommentDto addComment(@PathVariable Long userId,
                           @PathVariable Long eventId,
