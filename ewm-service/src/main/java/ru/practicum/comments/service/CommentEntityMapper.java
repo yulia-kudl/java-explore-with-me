@@ -3,7 +3,6 @@ package ru.practicum.comments.service;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import ru.practicum.categories.service.CategoryEntityMapper;
 import ru.practicum.comments.dto.CommentDto;
 import ru.practicum.comments.dto.CommentShortDto;
 import ru.practicum.comments.dto.NewCommentDto;

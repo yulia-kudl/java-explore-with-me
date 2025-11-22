@@ -1,6 +1,5 @@
 package ru.practicum.comments.service;
 
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import ru.practicum.comments.dto.CommentDto;
 import ru.practicum.comments.dto.CommentShortDto;
@@ -27,9 +26,8 @@ public interface CommentService {
 
     CommentDto getComment(Long commentId);
 
-    CommentDto publishComment(Long commentId);
 
-    CommentDto rejectComment(Long commentId);
+    CommentDto updateCommentStatus(Long commentId, CommentStatus newStatus);
 
     void deleteCommentByAdmin(Long commentId);
 }

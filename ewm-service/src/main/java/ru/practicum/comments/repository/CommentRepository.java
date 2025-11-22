@@ -1,14 +1,12 @@
 package ru.practicum.comments.repository;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import ru.practicum.categories.entity.CategoryEntity;
 import ru.practicum.comments.dto.CommentStatus;
 import ru.practicum.comments.entity.CommentEntity;
+
 import java.util.List;
-
-
-import java.util.Collection;
 
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {

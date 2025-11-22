@@ -45,15 +45,16 @@ public class CommentController {
     // GET /users/{userId}/comments/{commentId} - получить свой коммент
 
     @GetMapping("/users/{userId}/comments/{commentId}")
-    CommentDto getCommentByAuthor ( @PathVariable Long userId, @PathVariable Long commentId) {
+    CommentDto getCommentByAuthor(@PathVariable Long userId, @PathVariable Long commentId) {
         return commentService.getCommentByAuthor(userId, commentId);
     }
     // GET /users/{userId}/comments - получить свои комменты
 
     @GetMapping("/users/{userId}/comments")
-    List<CommentDto> getAllCommentsByAuthor(@PathVariable Long userId){
-        return  commentService.getAllCommentsByAuthor(userId);
+    List<CommentDto> getAllCommentsByAuthor(@PathVariable Long userId) {
+        return commentService.getAllCommentsByAuthor(userId);
     }
+
     // DELETE  /users/{userId}/comments/{commentId}
     @DeleteMapping("/users/{userId}/comments/{commentId}")
     void deleteCommentByAuthor(@PathVariable Long userId, @PathVariable Long commentId) {
@@ -64,9 +65,9 @@ public class CommentController {
     // GET /events/{eventId}/comments?size &from   (сортировка по дате деск)
     @GetMapping("/events/{eventId}/comments")
     List<CommentShortDto> getCommentsByEvent(@PathVariable Long eventId,
-                                      @RequestParam(defaultValue ="0") Integer from,
-                                      @RequestParam (defaultValue = "10") Integer size) {
-        return commentService.getCommentsByEvent( eventId, from, size);
+                                             @RequestParam(defaultValue = "0") Integer from,
+                                             @RequestParam(defaultValue = "10") Integer size) {
+        return commentService.getCommentsByEvent(eventId, from, size);
     }
 
 
@@ -75,8 +76,8 @@ public class CommentController {
     //GET /admin/comments
     @GetMapping("/admin/comments")
     List<CommentDto> getAllCommentsForAdmin(@RequestParam(required = false) CommentStatus status,
-                                            @RequestParam(defaultValue ="0") Integer from,
-                                            @RequestParam (defaultValue = "10") Integer size)  {
+                                            @RequestParam(defaultValue = "0") Integer from,
+                                            @RequestParam(defaultValue = "10") Integer size) {
         return commentService.getAllCommentsForAdmin(status, from, size);
     }
 
@@ -89,19 +90,19 @@ public class CommentController {
     // PATCH /admin/comments/{commentId}/publish
     @PatchMapping("admin/comments/{commentId}/publish")
     CommentDto publishComment(@PathVariable Long commentId) {
-        return commentService.publishComment(commentId);
+        return commentService.updateCommentStatus(commentId, CommentStatus.APPROVED);
     }
 
     // PATCH /admin/comments/{commentId}/reject
     @PatchMapping("admin/comments/{commentId}/reject")
     CommentDto rejectComment(@PathVariable Long commentId) {
-        return commentService.rejectComment(commentId);
+        return commentService.updateCommentStatus(commentId, CommentStatus.REJECTED);
     }
 
     // DELETE /admin/comments/{commentId}
     @DeleteMapping("/admin/comments/{commentId}")
     void deleteCommentByAdmin(@PathVariable Long commentId) {
-         commentService.deleteCommentByAdmin(commentId);
+        commentService.deleteCommentByAdmin(commentId);
     }
 
 }

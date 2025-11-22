@@ -25,7 +25,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class CommentServiceImpl implements CommentService{
+public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentEntityMapper mapper;
     private final UserRepository userRepository;
@@ -51,6 +51,7 @@ public class CommentServiceImpl implements CommentService{
         newEntity.setAuthor(user);
         newEntity.setEvent(event);
         newEntity.setStatus(CommentStatus.PENDING);
+        newEntity.setCreatedOn(LocalDateTime.now());
 
         return mapper.toDto(commentRepository.save(newEntity));
     }
@@ -129,11 +130,7 @@ public class CommentServiceImpl implements CommentService{
         EventEntity event = eventsRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException(eventId, "event"));
 
-        Pageable pageable = PageRequest.of(from / size, size,
-                Sort.by(Sort.Direction.DESC, "createdOn"));
-
-
-        return commentRepository.findAllByEventIdAndStatus(eventId, CommentStatus.APPROVED, pageable)
+        return commentRepository.findAllByEventIdAndStatus(eventId, CommentStatus.APPROVED, getPageable(from, size))
                 .stream()
                 .map(mapper::toShortDto)
                 .toList();
@@ -141,18 +138,13 @@ public class CommentServiceImpl implements CommentService{
 
     @Override
     public List<CommentDto> getAllCommentsForAdmin(CommentStatus status, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(
-                from / size,
-                size,
-                Sort.by(Sort.Direction.DESC, "createdOn")
-        );
 
         List<CommentEntity> comments;
 
         if (status != null) {
-            comments = commentRepository.findAllByStatus(status, pageable);
+            comments = commentRepository.findAllByStatus(status, getPageable(from, size));
         } else {
-            comments = commentRepository.findAll(pageable).toList();
+            comments = commentRepository.findAll(getPageable(from, size)).toList();
         }
 
         return comments.stream()
@@ -171,23 +163,7 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public CommentDto publishComment(Long commentId) {
-        // если нет - 404
-        // если статус не пендинг - 409
-            CommentEntity comment = commentRepository.findById(commentId)
-                    .orElseThrow(() -> new EntityNotFoundException(commentId, "Comment"));
-
-            if (comment.getStatus() != CommentStatus.PENDING) {
-                throw new ConflictException(
-                        "Comment " + commentId + " cannot be published - status not pending ");
-            }
-
-            comment.setStatus(CommentStatus.APPROVED);
-            return mapper.toDto(commentRepository.save(comment));
-    }
-
-    @Override
-    public CommentDto rejectComment(Long commentId) {
+    public CommentDto updateCommentStatus(Long commentId, CommentStatus newStatus) {
         // если нет - 404
         // если статус не пендинг - 409
         CommentEntity comment = commentRepository.findById(commentId)
@@ -198,9 +174,10 @@ public class CommentServiceImpl implements CommentService{
                     "Comment " + commentId + " cannot be published - status not pending ");
         }
 
-        comment.setStatus(CommentStatus.REJECTED);
+        comment.setStatus(newStatus);
         return mapper.toDto(commentRepository.save(comment));
     }
+
 
     @Override
     public void deleteCommentByAdmin(Long commentId) {
@@ -209,5 +186,11 @@ public class CommentServiceImpl implements CommentService{
                 .orElseThrow(() -> new EntityNotFoundException(commentId, "Comment"));
 
         commentRepository.delete(entity);
+    }
+
+
+    private Pageable getPageable(Integer from, Integer size) {
+        int page = from / size;
+        return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdOn"));
     }
 }
