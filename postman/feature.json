@@ -11,7 +11,7 @@
 			"name": "Comments",
 			"item": [
 				{
-					"name": "500 VALIDATION TEXT SIZE",
+					"name": "400 VALIDATION TEXT SIZE",
 					"event": [
 						{
 							"listen": "test",
