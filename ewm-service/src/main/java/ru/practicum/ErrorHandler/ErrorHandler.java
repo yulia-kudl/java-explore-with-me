@@ -67,7 +67,8 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler({EventChangeException.class,
-            CategoryNotEmptyException.class})
+            CategoryNotEmptyException.class,
+            ConflictException.class})
     public ResponseEntity<ErrorResponse> handleEventState(RuntimeException ex) {
         ErrorResponse response = new ErrorResponse(
                 "CONFLICT",

@@ -12,6 +12,7 @@ import ru.practicum.ErrorHandler.EventPublishException;
 import ru.practicum.StatsClient;
 import ru.practicum.StatsResponse;
 import ru.practicum.categories.repository.CategoryRepository;
+import ru.practicum.comments.repository.CommentRepository;
 import ru.practicum.events.SortType;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.entity.EventEntity;
@@ -36,6 +37,7 @@ public class EventsServiceImpl implements EventsService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
+    private final CommentRepository commentRepository;
     private final StatsClient statsClient;
 
 
@@ -104,6 +106,7 @@ public class EventsServiceImpl implements EventsService {
                     ).stream()
                     .map(mapper::toFullDto)
                     .toList();
+            addCommentCountsToEvents(results);
             return addViewsToList(results);
         }
 
@@ -124,7 +127,10 @@ public class EventsServiceImpl implements EventsService {
         int start = Math.min(filterDto.getFrom(), all.size());
         int end = Math.min(start + filterDto.getSize(), all.size());
 
-        return all.subList(start, end);
+        List<EventFullDto> results = all.subList(start, end);
+        addCommentCountsToEvents(results);
+        return results;
+
     }
 
     @Override
@@ -138,6 +144,7 @@ public class EventsServiceImpl implements EventsService {
         }
         EventFullDto eventFull = mapper.toFullDto(entity);
         eventFull.setViews(getViewsForEvent(id, eventFull.getPublishedOn()));
+        eventFull.setComments(commentRepository.countByEventId(id));
         return eventFull;
 
     }
@@ -362,6 +369,25 @@ public class EventsServiceImpl implements EventsService {
         }
 
 
+    }
+
+    private void addCommentCountsToEvents(List<EventFullDto> events) {
+        if (events == null || events.isEmpty()) {
+            return;
+        }
+
+        List<Long> eventIds = events.stream()
+                .map(EventFullDto::getId)
+                .toList();
+
+        List<Object[]> rows = commentRepository.countCommentsByEventIds(eventIds);
+
+        Map<Long, Long> commentCountMap = rows.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],   // eventId
+                        row -> (Long) row[1]    // count
+                ));
+        events.forEach(event -> event.setComments(commentCountMap.getOrDefault(event.getId(), 0L)));
     }
 
 
