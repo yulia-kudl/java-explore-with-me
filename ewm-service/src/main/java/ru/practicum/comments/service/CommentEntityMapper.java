@@ -18,6 +18,7 @@ public interface CommentEntityMapper {
 
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "event", ignore = true)
+    @Mapping(target = "event.id", source = "eventId")
     CommentEntity toEntity(NewCommentDto dto);
 
     @Mapping(target = "author", ignore = true)

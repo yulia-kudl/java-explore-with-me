@@ -11,6 +11,151 @@
 			"name": "Comments",
 			"item": [
 				{
+					"name": "Update comment text",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const main = async () => {\r",
+									"    const api = new API(pm);\r",
+									"    const rnd = new RandomUtils();\r",
+									"\r",
+									"    try {\r",
+									"        const user = await api.addUser(rnd.getUser());\r",
+									"        const category = await api.addCategory(rnd.getCategory());\r",
+									"\r",
+									"        // 2. Создаем событие\r",
+									"        let event = await api.addEvent(user.id, rnd.getEvent(category.id));\r",
+									"\r",
+									"        // 3. Публикуем событие\r",
+									"        event = await api.publishEvent(event.id);\r",
+									"\r",
+									"        // Сохраняем данные для запросов\r",
+									"        pm.collectionVariables.set(\"uid\", user.id);\r",
+									"        pm.collectionVariables.set(\"eid\", event.id);\r",
+									"\r",
+									"        // 4. Генерируем уникальный текст комментария\r",
+									"        const commentText = \"COMMENT_\" + Date.now() + \"_\" + Math.floor(Math.random() * 1000);\r",
+									"   \r",
+									"\r",
+									"      \r",
+									"        // 5. Добавляем комментарий\r",
+									"        const comment = await api.addComment(user.id, event.id, {\r",
+									"            text: commentText,\r",
+									"            eventId: event.id\r",
+									"        });\r",
+									"        pm.collectionVariables.set(\"commentId\", comment.id);\r",
+									"\r",
+									"        const updateCommentDto = {\r",
+									"            id: comment.id,\r",
+									"    text: \"Новый текст комментария\"\r",
+									"};\r",
+									"     pm.request.body.update({\r",
+									"    mode: 'raw',\r",
+									"    raw: JSON.stringify(updateCommentDto),\r",
+									"    options: { raw: { language: 'json' } }\r",
+									"});\r",
+									"\r",
+									"\r",
+									"    } catch (err) {\r",
+									"        console.error(\"Ошибка при подготовке тестовых данных:\", err);\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"// Запуск\r",
+									"const interval = setInterval(() => {}, 1000);\r",
+									"setTimeout(async () => {\r",
+									"    try {\r",
+									"                console.log(\"после вызова апи api.upd: 2\");\r",
+									"\r",
+									"        await main();\r",
+									"                console.log(\"после вызова апи api.upd: 3\");\r",
+									"\r",
+									"    } catch (e) {\r",
+									"        console.error(e);\r",
+									"    } finally {\r",
+									"\r",
+									"        clearInterval(interval);\r",
+									"    }\r",
+									"}, 1);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Проверка, что статус ответа 201 Created\r",
+									"pm.test(\"Ответ должен содержать код статуса 200 и быть JSON\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.to.be.withBody;\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"// Получаем тело ответа\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"// Проверка структуры комментария\r",
+									"pm.test(\"Комментарий должен содержать поля id, text, author, event, createdOn, status\", function () {\r",
+									"    pm.expect(response).to.have.property('id');\r",
+									"    pm.expect(response).to.have.property('text');\r",
+									"    pm.expect(response).to.have.property('author');\r",
+									"    pm.expect(response).to.have.property('event');\r",
+									"    pm.expect(response).to.have.property('createdOn');\r",
+									"    pm.expect(response).to.have.property('status');\r",
+									"});\r",
+									"\r",
+									"// Проверка статуса комментария (если есть определённые допустимые значения)\r",
+									"pm.test(\"Статус комментария корректный\", function () {\r",
+									"    const validStatuses = [\"PENDING\"];\r",
+									"    pm.expect(validStatuses).to.include(response.status);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request_body}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/:userId/comments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								":userId",
+								"comments"
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "{{uid}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "400 VALIDATION TEXT SIZE",
 					"event": [
 						{
@@ -32,8 +177,12 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
 								"packages": {},
-								"type": "text/javascript"
+								"requests": {}
 							}
 						}
 					],
@@ -42,7 +191,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"text\": \" \"\r\n}",
+							"raw": "{\r\n    \"eventId\": \"1\",\r\n    \"text\": \" \"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -50,15 +199,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/users/1/events/2/comments",
+							"raw": "{{baseUrl}}/users/1/comments",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
 								"1",
-								"events",
-								"2",
 								"comments"
 							]
 						}
@@ -95,11 +242,14 @@
 									"        const commentText = \"COMMENT_\" + Date.now() + \"_\" + Math.floor(Math.random() * 1000);\r",
 									"\r",
 									"        // Обновляем тело запроса для добавления комментария\r",
-									"        pm.request.body.update({\r",
+									"       pm.request.body.update({\r",
 									"            mode: 'raw',\r",
-									"            raw: JSON.stringify({ text: commentText }),\r",
-									"            options: { raw: { language: 'json' } }\r",
-									"        });\r",
+									"             raw: JSON.stringify({\r",
+									"             text: commentText,\r",
+									"             eventId: event.id     // ← добавляем eventId в тело POST запроса\r",
+									"    }),\r",
+									"    options: { raw: { language: 'json' } }\r",
+									"});\r",
 									"        \r",
 									"\r",
 									"        const comment = await api.addComment(user.id, event.id, { text: commentText });\r",
@@ -179,25 +329,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/users/:userId/events/:eventId/comments",
+							"raw": "{{baseUrl}}/users/:userId/comments",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
 								":userId",
-								"events",
-								":eventId",
 								"comments"
 							],
 							"variable": [
 								{
 									"key": "userId",
 									"value": "{{uid}}"
-								},
-								{
-									"key": "eventId",
-									"value": "{{eid}}"
 								}
 							]
 						}
@@ -665,7 +809,7 @@
 								"exec": [
 									"const main = async () => {\r",
 									"    const api = new API(pm); \r",
-									"    const rnd = new RandomUtils(); \r",
+									"    const rnd = new RandomUtils(); // Ваш генератор случайных данных\r",
 									"\r",
 									"    try {\r",
 									"        // Создаем пользователя и категорию\r",
@@ -686,11 +830,15 @@
 									"        const commentText = \"COMMENT_\" + Date.now() + \"_\" + Math.floor(Math.random() * 1000);\r",
 									"\r",
 									"        // Обновляем тело запроса для добавления комментария\r",
-									"        pm.request.body.update({\r",
+									"       pm.request.body.update({\r",
 									"            mode: 'raw',\r",
-									"            raw: JSON.stringify({ text: commentText }),\r",
-									"            options: { raw: { language: 'json' } }\r",
-									"        });\r",
+									"             raw: JSON.stringify({\r",
+									"             text: commentText,\r",
+									"             eventId: event.id     // ← добавляем eventId в тело POST запроса\r",
+									"    }),\r",
+									"    options: { raw: { language: 'json' } }\r",
+									"});\r",
+									"        \r",
 									"\r",
 									"        const comment = await api.addComment(user.id, event.id, { text: commentText });\r",
 									"        pm.collectionVariables.set(\"commentId\", comment.id);\r",
@@ -769,25 +917,19 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/users/:userId/events/:eventId/comments",
+							"raw": "{{baseUrl}}/users/:userId/comments",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
 								":userId",
-								"events",
-								":eventId",
 								"comments"
 							],
 							"variable": [
 								{
 									"key": "userId",
 									"value": "{{uid}}"
-								},
-								{
-									"key": "eventId",
-									"value": "{{eid}}"
 								}
 							]
 						}
@@ -1029,15 +1171,32 @@
 					"        return this.post(\"/users/\" + userId + \"/events\", event, \"Ошибка при добавлении нового события: \", verbose);",
 					"    }",
 					"",
-					"     async addComment(userId, eventId, body, verbose=null) {",
-					"        return this.post(",
-					"            \"/users/\" + userId + \"/events/\" + eventId + \"/comments\",",
-					"            body,",
-					"            \"Ошибка при добавлении комментария: \",",
-					"            verbose",
-					"        );",
+					" async addComment(userId, eventId, body, verbose = null) {",
+					"    return this.post(",
+					"        \"/users/\" + userId + \"/comments\",   ",
+					"        {",
+					"            ...body,",
+					"            eventId: eventId               ",
+					"        },",
+					"        \"Ошибка при добавлении комментария: \",",
+					"        verbose",
+					"    );",
+					" }",
+					"  async updateComment(userId, commentDto, verbose = null) {",
+					"    if (!commentDto || !commentDto.id || !commentDto.text) {",
+					"        throw new Error(\"updateComment: commentDto должен содержать id и text\");",
 					"    }",
-					"    ",
+					"",
+					"    console.log(\"Отправляем PATCH:\", JSON.stringify(commentDto));",
+					"",
+					"    return this.patch(",
+					"        `/users/${userId}/comments`,",
+					"        commentDto,",
+					"        \"Ошибка при обновлении комментария: \",",
+					"        verbose",
+					"    );",
+					"}",
+					"",
 					"    async getCommentsByEvent(eventId, verbose = null) {",
 					"    return this.get(",
 					"        '/events/' + eventId + '/comments',   ",

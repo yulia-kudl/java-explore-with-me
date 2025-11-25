@@ -21,23 +21,21 @@ public class CommentController {
     private final CommentService commentService;
 
     // private
-    // POST /users/{userId}/events/{eventId}/comments - добавить коммент 201
-    @PostMapping("users/{userId}/events/{eventId}/comments")
+    // POST /users/{userId}/comments - добавить коммент 201
+    @PostMapping("users/{userId}/comments")
     @ResponseStatus(HttpStatus.CREATED)
     CommentDto addComment(@PathVariable Long userId,
-                          @PathVariable Long eventId,
                           @RequestBody @Valid NewCommentDto request) {
 
-        return commentService.addComment(userId, eventId, request);
+        return commentService.addComment(userId, request.getEventId(), request);
 
     }
 
     //PATCH /users/{userId}/comments/ - обновить коммент
     @PatchMapping("users/{userId}/comments")
     CommentDto updateComment(@PathVariable Long userId,
-                             @PathVariable Long commentId,
                              @RequestBody @Valid UpdateCommentDto update) {
-        return commentService.updateComment(userId, commentId, update);
+        return commentService.updateComment(userId, update.getId(), update);
     }
     // GET /users/{userId}/comments/{commentId} - получить свой коммент
 

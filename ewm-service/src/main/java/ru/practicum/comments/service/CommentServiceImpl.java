@@ -59,8 +59,8 @@ public class CommentServiceImpl implements CommentService {
         // онбновляем updatedOn
         CommentEntity comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new EntityNotFoundException(commentId, "Comment"));
-        if (!comment.getAuthor().getId().equals(commentId)) {
-            throw new EntityNotFoundException(commentId, "Comment");
+        if (!comment.getAuthor().getId().equals(userId)) {
+            throw new EntityNotFoundException(userId, "User");
         }
         if (comment.getStatus().equals(CommentStatus.REJECTED)) {
             throw new ConflictException("Cannot update rejected comment");
