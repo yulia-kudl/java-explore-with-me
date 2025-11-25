@@ -12,6 +12,7 @@ import ru.practicum.ErrorHandler.EventPublishException;
 import ru.practicum.StatsClient;
 import ru.practicum.StatsResponse;
 import ru.practicum.categories.repository.CategoryRepository;
+import ru.practicum.comments.repository.CommentRepository;
 import ru.practicum.events.SortType;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.entity.EventEntity;
@@ -36,6 +37,7 @@ public class EventsServiceImpl implements EventsService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
+    private final CommentRepository commentRepository;
     private final StatsClient statsClient;
 
 
@@ -104,7 +106,10 @@ public class EventsServiceImpl implements EventsService {
                     ).stream()
                     .map(mapper::toFullDto)
                     .toList();
-            return addViewsToList(results);
+            return addViewsToList(results)
+                    .stream()
+                    .peek(eventFullDto -> eventFullDto.setComments(commentRepository.countByEventId(eventFullDto.getId())))
+                    .toList();
         }
 
         // если нужно сортировать по вьюс
@@ -124,7 +129,10 @@ public class EventsServiceImpl implements EventsService {
         int start = Math.min(filterDto.getFrom(), all.size());
         int end = Math.min(start + filterDto.getSize(), all.size());
 
-        return all.subList(start, end);
+        return all.subList(start, end)
+                .stream()
+                .peek(eventFullDto -> eventFullDto.setComments(commentRepository.countByEventId(eventFullDto.getId())))
+                .toList();
     }
 
     @Override
@@ -138,6 +146,7 @@ public class EventsServiceImpl implements EventsService {
         }
         EventFullDto eventFull = mapper.toFullDto(entity);
         eventFull.setViews(getViewsForEvent(id, eventFull.getPublishedOn()));
+        eventFull.setComments(commentRepository.countByEventId(id));
         return eventFull;
 
     }
