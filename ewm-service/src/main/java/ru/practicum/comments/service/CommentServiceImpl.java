@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ErrorHandler.ConflictException;
 import ru.practicum.ErrorHandler.EntityNotFoundException;
-import ru.practicum.comments.dto.CommentDto;
-import ru.practicum.comments.dto.CommentShortDto;
-import ru.practicum.comments.dto.CommentStatus;
-import ru.practicum.comments.dto.NewCommentDto;
+import ru.practicum.comments.dto.*;
 import ru.practicum.comments.entity.CommentEntity;
 import ru.practicum.comments.repository.CommentRepository;
 import ru.practicum.events.dto.EventState;
@@ -50,14 +47,12 @@ public class CommentServiceImpl implements CommentService {
 
         newEntity.setAuthor(user);
         newEntity.setEvent(event);
-        newEntity.setStatus(CommentStatus.PENDING);
-        newEntity.setCreatedOn(LocalDateTime.now());
 
         return mapper.toDto(commentRepository.save(newEntity));
     }
 
     @Override
-    public CommentDto updateComment(Long userId, Long commentId, NewCommentDto update) {
+    public CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto update) {
         // коммент не принадлежит юзеру - 404
         // если rejected - конфликт 409
         // если published - переводим в пендинг

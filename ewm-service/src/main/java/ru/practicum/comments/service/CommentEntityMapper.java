@@ -6,6 +6,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import ru.practicum.comments.dto.CommentDto;
 import ru.practicum.comments.dto.CommentShortDto;
 import ru.practicum.comments.dto.NewCommentDto;
+import ru.practicum.comments.dto.UpdateCommentDto;
 import ru.practicum.comments.entity.CommentEntity;
 import ru.practicum.events.service.EventEntityMapper;
 import ru.practicum.users.service.UserEntityMapper;
@@ -18,6 +19,10 @@ public interface CommentEntityMapper {
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "event", ignore = true)
     CommentEntity toEntity(NewCommentDto dto);
+
+    @Mapping(target = "author", ignore = true)
+    @Mapping(target = "event", ignore = true)
+    CommentEntity toEntity(UpdateCommentDto dto);
 
     CommentDto toDto(CommentEntity entity);
 

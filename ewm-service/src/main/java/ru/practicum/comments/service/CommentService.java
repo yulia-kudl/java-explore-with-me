@@ -1,10 +1,7 @@
 package ru.practicum.comments.service;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.comments.dto.CommentDto;
-import ru.practicum.comments.dto.CommentShortDto;
-import ru.practicum.comments.dto.CommentStatus;
-import ru.practicum.comments.dto.NewCommentDto;
+import ru.practicum.comments.dto.*;
 
 import java.util.List;
 
@@ -12,7 +9,7 @@ import java.util.List;
 public interface CommentService {
     CommentDto addComment(Long userId, Long eventId, NewCommentDto request);
 
-    CommentDto updateComment(Long userId, Long commentId, NewCommentDto update);
+    CommentDto updateComment(Long userId, Long commentId, UpdateCommentDto update);
 
     CommentDto getCommentByAuthor(Long userId, Long commentId);
 

@@ -7,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.comments.dto.CommentDto;
-import ru.practicum.comments.dto.CommentShortDto;
-import ru.practicum.comments.dto.CommentStatus;
-import ru.practicum.comments.dto.NewCommentDto;
+import ru.practicum.comments.dto.*;
 import ru.practicum.comments.service.CommentService;
 
 import java.util.List;
@@ -35,11 +32,11 @@ public class CommentController {
 
     }
 
-    //PATCH /users/{userId}/comments/{commentId} - обновить коммент
-    @PatchMapping("users/{userId}/comments/{commentId}")
+    //PATCH /users/{userId}/comments/ - обновить коммент
+    @PatchMapping("users/{userId}/comments")
     CommentDto updateComment(@PathVariable Long userId,
                              @PathVariable Long commentId,
-                             @RequestBody @Valid NewCommentDto update) {
+                             @RequestBody @Valid UpdateCommentDto update) {
         return commentService.updateComment(userId, commentId, update);
     }
     // GET /users/{userId}/comments/{commentId} - получить свой коммент

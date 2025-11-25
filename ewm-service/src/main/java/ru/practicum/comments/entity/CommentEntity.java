@@ -31,7 +31,7 @@ public class CommentEntity {
     @JoinColumn(name = "event_id", nullable = false)
     private EventEntity event;
     @CreationTimestamp
-    @Column(name = "created_on", updatable = false)
+    @Column(name = "created_on", nullable = false)
     private LocalDateTime createdOn;
     @Column(name = "updated_on", nullable = true)
     private LocalDateTime updatedOn;
